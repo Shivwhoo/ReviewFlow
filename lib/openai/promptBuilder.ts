@@ -55,24 +55,41 @@ export function buildPrompt(input: PromptInput): {
 
   let system = `${SYSTEM_MESSAGE}\n\n`;
   
+  system += `--- FORMATTING GUIDELINES & EXAMPLES ---\n`;
+  system += `These examples show the length, formatting, and tone style. Do NOT reuse the products, details, or exact phrasing of these examples:\n${examples}\n\n`;
+  
+  system += `--- CRITICAL GENERATION INSTRUCTIONS ---\n`;
+  system += `1. You MUST generate exactly two distinct reviews in the requested language (${langLabel}) and tone (${toneDescription}).\n`;
+  system += `2. Focus on different aspects (e.g., ${tagList}) or use different phrasing between Option 1 and Option 2.\n`;
+  
   if (aiContextPrompt && aiContextPrompt.trim()) {
-    system += `Use the following background information about the business to tailor the reviews to this specific place:\n"${aiContextPrompt}"\n\n`;
+    system += `3. BUSINESS CONTEXT INJECTION: You are writing reviews for "${businessName}". You MUST tailor both reviews to this specific place using the background training context provided below. Weave in their unique offerings, products, or compliments:
+"${aiContextPrompt}"\n\n`;
   }
   
-  system += `${examples}\n\n`;
-  system += `CRITICAL: You MUST write exactly two distinct review variations. The reviews should focus on different aspects of the business or use different wording/phrasing. Return your response ONLY as a valid JSON object matching this schema:
+  if (userNotes && userNotes.trim()) {
+    system += `4. CUSTOMER NOTES INJECTION: The customer wants to specifically mention the following details in their review:
+"${userNotes}"
+You MUST explicitly, prominently, and naturally weave this customer note/mention into BOTH reviews. Do not ignore this.\n\n`;
+  }
+
+  system += `5. RESPONSE FORMAT: You MUST return your response ONLY as a valid JSON object matching this schema:
 {
   "reviews": [
-    "first review text",
-    "second review text"
+    "first review text (incorporating business context and customer notes)",
+    "second review text (incorporating business context and customer notes)"
   ]
 }
-Do not include any formatting markdown or backticks (like \`\`\`json). Just return the raw JSON object string.`;
+Do not include any formatting markdown, backticks, or "json" prefix wrappers. Just return the raw JSON object string.`;
 
   let user = `Write two different short Google reviews for ${businessName}. Rating: ${rating} stars. Focus on these aspects: ${tagList}. Tone: ${toneDescription}. Language: ${langLabel}.`;
   
   if (userNotes && userNotes.trim()) {
-    user += ` The customer also wants to specifically highlight/mention: "${userNotes}". Naturally weave this mention into both review options.`;
+    user += ` Note: Prominently include/mention "${userNotes}" in both options.`;
+  }
+
+  if (aiContextPrompt && aiContextPrompt.trim()) {
+    user += ` Note: Align both options with this business context: "${aiContextPrompt}".`;
   }
 
   return { system, user };

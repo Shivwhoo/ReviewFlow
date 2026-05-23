@@ -58,9 +58,29 @@ async function seed() {
 
   let businessId: mongoose.Types.ObjectId;
 
+  const demoAnswers = {
+    uniqueFeatures: "traditional wood-fired sourdough pizzas, cozy outdoor garden seating, and family-secret marinara sauce",
+    targetCustomer: "families, couples looking for a romantic date spot, and pizza lovers",
+    popularProducts: "Margherita Extra Pizza, Truffle Cacio e Pepe, Pistachio Cannoli",
+    compliments: "extremely friendly servers who treat you like family, warm ambiance, and lightning-fast pizza serving times",
+    reviewTone: "warm",
+    keywords: "authentic naples pizza, wood-fired, sourdough, cozy garden",
+  };
+  const demoContext = "This business is unique because: traditional wood-fired sourdough pizzas, cozy outdoor garden seating, and family-secret marinara sauce. Their typical customers are: families, couples looking for a romantic date spot, and pizza lovers. Their top products/services are: Margherita Extra Pizza, Truffle Cacio e Pepe, Pistachio Cannoli. Customers frequently compliment them on: extremely friendly servers who treat you like family, warm ambiance, and lightning-fast pizza serving times. The preferred review style/tone is: Warm & Personal. Optionally, try to naturally include these keywords/phrases: authentic naples pizza, wood-fired, sourdough, cozy garden.";
+
   if (existingBusiness) {
-    console.log("   ✓ Demo business already exists");
+    console.log("   ✓ Demo business already exists (updating onboarding details)");
     businessId = existingBusiness._id as mongoose.Types.ObjectId;
+    await db.collection("businesses").updateOne(
+      { _id: businessId },
+      { 
+        $set: { 
+          onboardingCompleted: true, 
+          onboardingAnswers: demoAnswers, 
+          aiContextPrompt: demoContext 
+        } 
+      }
+    );
   } else {
     const result = await db.collection("businesses").insertOne({
       userId: adminId,
@@ -70,11 +90,14 @@ async function seed() {
         "https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4",
       defaultLanguage: "en",
       isActive: true,
+      onboardingCompleted: true,
+      onboardingAnswers: demoAnswers,
+      aiContextPrompt: demoContext,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
     businessId = result.insertedId as unknown as mongoose.Types.ObjectId;
-    console.log("   ✓ Created demo business");
+    console.log("   ✓ Created demo business with onboarding details");
   }
 
   // 3. Create demo location
