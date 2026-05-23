@@ -35,55 +35,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user, trigger }) {
-      if (user) {
-        // First sign-in: fetch role from database in Node runtime
-        const db = client.db();
-        const dbUser = await db
-          .collection("users")
-          .findOne({ email: token.email });
+      const db = client.db();
+      const dbUser = await db
+        .collection("users")
+        .findOne({ email: token.email });
 
-        let role = (dbUser?.role as "business" | "admin") || "business";
-        let subscriptionTier =
-          (dbUser?.subscriptionTier as "free" | "pro" | "multi-location") ||
-          "free";
-
-        if (token.email === "shivamkeshri009@gmail.com") {
-          role = "admin";
-          subscriptionTier = "multi-location";
-
-          if (!dbUser || dbUser.role !== "admin" || dbUser.subscriptionTier !== "multi-location") {
-            await db.collection("users").updateOne(
-              { email: token.email },
-              { $set: { role: "admin", subscriptionTier: "multi-location" } },
-              { upsert: true }
-            );
-          }
-        }
-
-        token.role = role;
-        token.subscriptionTier = subscriptionTier;
-        token.userId = dbUser?._id?.toString() || user.id;
-      }
-
-      if (trigger === "update") {
-        // Re-fetch on session update in Node runtime
-        const db = client.db();
-        const dbUser = await db
-          .collection("users")
-          .findOne({ email: token.email });
-        if (dbUser) {
-          token.role = dbUser.role as "business" | "admin";
-          token.subscriptionTier = dbUser.subscriptionTier as
-            | "free"
-            | "pro"
-            | "multi-location";
-        }
-      }
+      let role = (dbUser?.role as "business" | "admin") || "business";
+      let subscriptionTier =
+        (dbUser?.subscriptionTier as "free" | "pro" | "multi-location") ||
+        "free";
 
       if (token.email === "shivamkeshri009@gmail.com") {
-        token.role = "admin";
-        token.subscriptionTier = "multi-location";
+        role = "admin";
+        subscriptionTier = "multi-location";
+
+        if (!dbUser || dbUser.role !== "admin" || dbUser.subscriptionTier !== "multi-location") {
+          await db.collection("users").updateOne(
+            { email: token.email },
+            { $set: { role: "admin", subscriptionTier: "multi-location" } },
+            { upsert: true }
+          );
+        }
       }
+
+      token.role = role;
+      token.subscriptionTier = subscriptionTier;
+      token.userId = dbUser?._id?.toString() || (token.userId as string) || user?.id;
 
       return token;
     },
