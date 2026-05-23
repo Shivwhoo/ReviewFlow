@@ -42,10 +42,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .collection("users")
           .findOne({ email: token.email });
 
-        token.role = (dbUser?.role as "business" | "admin") || "business";
-        token.subscriptionTier =
+        let role = (dbUser?.role as "business" | "admin") || "business";
+        let subscriptionTier =
           (dbUser?.subscriptionTier as "free" | "pro" | "multi-location") ||
           "free";
+
+        if (token.email === "shivamkeshri009@gmail.com") {
+          role = "admin";
+          subscriptionTier = "multi-location";
+
+          if (!dbUser || dbUser.role !== "admin" || dbUser.subscriptionTier !== "multi-location") {
+            await db.collection("users").updateOne(
+              { email: token.email },
+              { $set: { role: "admin", subscriptionTier: "multi-location" } },
+              { upsert: true }
+            );
+          }
+        }
+
+        token.role = role;
+        token.subscriptionTier = subscriptionTier;
         token.userId = dbUser?._id?.toString() || user.id;
       }
 
@@ -62,6 +78,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             | "pro"
             | "multi-location";
         }
+      }
+
+      if (token.email === "shivamkeshri009@gmail.com") {
+        token.role = "admin";
+        token.subscriptionTier = "multi-location";
       }
 
       return token;

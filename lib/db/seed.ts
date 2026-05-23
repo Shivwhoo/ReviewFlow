@@ -11,7 +11,7 @@
  */
 
 import mongoose from "mongoose";
-import "dotenv/config";
+// import "dotenv/config";
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/reviewflow";
 
@@ -23,27 +23,32 @@ async function seed() {
 
   const db = mongoose.connection.db!;
 
-  // 1. Create admin user
-  const adminEmail = "admin@reviewflow.app";
-  const existingAdmin = await db.collection("users").findOne({ email: adminEmail });
+  // 1. Create admin users
+  const adminEmails = ["admin@reviewflow.app", "shivamkeshri009@gmail.com"];
+  let adminId: mongoose.Types.ObjectId | undefined;
 
-  let adminId: mongoose.Types.ObjectId;
-
-  if (existingAdmin) {
-    console.log("   ✓ Admin user already exists");
-    adminId = existingAdmin._id as mongoose.Types.ObjectId;
-  } else {
-    const result = await db.collection("users").insertOne({
-      email: adminEmail,
-      name: "Admin User",
-      role: "admin",
-      subscriptionTier: "multi-location",
-      creditsUsedThisMonth: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    adminId = result.insertedId as unknown as mongoose.Types.ObjectId;
-    console.log("   ✓ Created admin user:", adminEmail);
+  for (const email of adminEmails) {
+    const existingAdmin = await db.collection("users").findOne({ email });
+    if (existingAdmin) {
+      console.log(`   ✓ Admin user already exists: ${email}`);
+      if (email === "admin@reviewflow.app" || !adminId) {
+        adminId = existingAdmin._id as mongoose.Types.ObjectId;
+      }
+    } else {
+      const result = await db.collection("users").insertOne({
+        email,
+        name: email === "admin@reviewflow.app" ? "Admin User" : "Shivam Keshri",
+        role: "admin",
+        subscriptionTier: "multi-location",
+        creditsUsedThisMonth: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      console.log("   ✓ Created admin user:", email);
+      if (email === "admin@reviewflow.app" || !adminId) {
+        adminId = result.insertedId as unknown as mongoose.Types.ObjectId;
+      }
+    }
   }
 
   // 2. Create demo business
