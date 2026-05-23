@@ -4,8 +4,8 @@ import redis from "@/lib/redis/client";
 import dbConnect from "@/lib/db/mongoose";
 import Business from "@/lib/db/models/Business";
 import User, { CREDIT_LIMITS } from "@/lib/db/models/User";
-import openai from "@/lib/openai/client";
-import { buildPrompt, getFallbackReviews } from "@/lib/openai/promptBuilder";
+import groq from "@/lib/groq/client";
+import { buildPrompt, getFallbackReviews } from "@/lib/groq/promptBuilder";
 import { buildCacheKey } from "@/lib/utils/cacheKey";
 import { hashIp } from "@/lib/utils/hashIp";
 import { generateReviewSchema } from "@/lib/validations";
@@ -111,11 +111,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ reviews: reviewsArray, cached: true });
     }
 
-    // Generate review with OpenAI
+    // Generate review with Groq
     let reviews: string[] = [];
     let isFallback = false;
 
-    if (openai) {
+    if (groq) {
       try {
         const prompt = buildPrompt({
           businessName: business.name,
@@ -127,8 +127,8 @@ export async function POST(request: NextRequest) {
           userNotes,
         });
 
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
+        const completion = await groq.chat.completions.create({
+          model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
           messages: [
             { role: "system", content: prompt.system },
             { role: "user", content: prompt.user },
@@ -147,10 +147,10 @@ export async function POST(request: NextRequest) {
         }
 
         if (reviews.length < 2) {
-          throw new Error("Invalid reviews count returned from OpenAI");
+          throw new Error("Invalid reviews count returned from Groq");
         }
-      } catch (openAiError) {
-        console.error("OpenAI generation failed (falling back to local generator):", openAiError);
+      } catch (groqError) {
+        console.error("Groq generation failed (falling back to local generator):", groqError);
         reviews = getFallbackReviews(rating, {
           businessName: business.name,
           tags,
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
         isFallback = true;
       }
     } else {
-      // Fallback when OpenAI is not configured
+      // Fallback when Groq is not configured
       reviews = getFallbackReviews(rating, {
         businessName: business.name,
         tags,
