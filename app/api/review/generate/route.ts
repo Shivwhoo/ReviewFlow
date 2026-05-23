@@ -73,6 +73,10 @@ export async function POST(request: NextRequest) {
           tone: tone as Tone,
           language: lang as "en" | "hi",
         });
+        if (userNotes && userNotes.trim()) {
+          fallback[0] = `${fallback[0]} Also, ${userNotes.trim()}.`;
+          fallback[1] = `${fallback[1]} Especially ${userNotes.trim()}.`;
+        }
         return NextResponse.json({ reviews: fallback, cached: false, fallback: true });
       }
     }
@@ -153,6 +157,10 @@ export async function POST(request: NextRequest) {
           tone: tone as Tone,
           language: lang as "en" | "hi",
         });
+        if (userNotes && userNotes.trim()) {
+          reviews[0] = `${reviews[0]} Also, ${userNotes.trim()}.`;
+          reviews[1] = `${reviews[1]} Especially ${userNotes.trim()}.`;
+        }
         isFallback = true;
       }
     } else {
@@ -163,6 +171,10 @@ export async function POST(request: NextRequest) {
         tone: tone as Tone,
         language: lang as "en" | "hi",
       });
+      if (userNotes && userNotes.trim()) {
+        reviews[0] = `${reviews[0]} Also, ${userNotes.trim()}.`;
+        reviews[1] = `${reviews[1]} Especially ${userNotes.trim()}.`;
+      }
       isFallback = true;
     }
 
