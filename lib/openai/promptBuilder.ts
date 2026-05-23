@@ -6,6 +6,8 @@ interface PromptInput {
   tags: string[];
   tone: Tone;
   language: "en" | "hi";
+  aiContextPrompt?: string;
+  userNotes?: string;
 }
 
 const TONE_DESCRIPTIONS: Record<Tone, string> = {
@@ -35,25 +37,43 @@ Rating 4, tags Food+Price, tone Professional: "Khana achha tha aur prices reason
 
 Rating 2, tags Service, tone Short: "Service bohot slow thi. Order mein galti thi. Disappointing."`;
 
-const SYSTEM_MESSAGE = `You write short, authentic Google reviews. Never use spammy phrases like "best ever", "must visit", "hidden gem". Keep it under 60 words. Use the exact rating and tone provided. If rating is low, be polite and constructive. Never mention that you are an AI. Write as a real customer.`;
+const SYSTEM_MESSAGE = `You write short, authentic Google reviews. Never use spammy phrases like "best ever", "must visit", "hidden gem". Keep each review under 60 words. Use the exact rating and tone provided. If rating is low, be polite and constructive. Never mention that you are an AI. Write as a real customer.`;
 
 /**
- * Build the prompt for OpenAI to generate a review.
+ * Build the prompt for OpenAI to generate exactly two distinct reviews in JSON format.
  */
 export function buildPrompt(input: PromptInput): {
   system: string;
   user: string;
 } {
-  const { businessName, rating, tags, tone, language } = input;
+  const { businessName, rating, tags, tone, language, aiContextPrompt, userNotes } = input;
 
   const examples = language === "hi" ? HINGLISH_EXAMPLES : ENGLISH_EXAMPLES;
   const langLabel = language === "hi" ? "Hinglish" : "English";
   const toneDescription = TONE_DESCRIPTIONS[tone];
   const tagList = tags.length > 0 ? tags.join(", ") : "overall experience";
 
-  const system = `${SYSTEM_MESSAGE}\n\n${examples}`;
+  let system = `${SYSTEM_MESSAGE}\n\n`;
+  
+  if (aiContextPrompt && aiContextPrompt.trim()) {
+    system += `Use the following background information about the business to tailor the reviews to this specific place:\n"${aiContextPrompt}"\n\n`;
+  }
+  
+  system += `${examples}\n\n`;
+  system += `CRITICAL: You MUST write exactly two distinct review variations. The reviews should focus on different aspects of the business or use different wording/phrasing. Return your response ONLY as a valid JSON object matching this schema:
+{
+  "reviews": [
+    "first review text",
+    "second review text"
+  ]
+}
+Do not include any formatting markdown or backticks (like \`\`\`json). Just return the raw JSON object string.`;
 
-  const user = `Write a review for ${businessName}. Rating: ${rating} stars. Focus on these aspects: ${tagList}. Tone: ${toneDescription}. Language: ${langLabel}.`;
+  let user = `Write two different short Google reviews for ${businessName}. Rating: ${rating} stars. Focus on these aspects: ${tagList}. Tone: ${toneDescription}. Language: ${langLabel}.`;
+  
+  if (userNotes && userNotes.trim()) {
+    user += ` The customer also wants to specifically highlight/mention: "${userNotes}". Naturally weave this mention into both review options.`;
+  }
 
   return { system, user };
 }
@@ -320,4 +340,61 @@ export function getFallbackReview(
 
   const reviews = FALLBACK_REVIEWS[tier];
   return reviews[Math.floor(Math.random() * reviews.length)];
+}
+
+/**
+ * Get two distinct fallback reviews when OpenAI is unavailable.
+ */
+export function getFallbackReviews(
+  rating: number,
+  options?: {
+    businessName?: string;
+    tags?: string[];
+    tone?: Tone;
+    language?: "en" | "hi";
+  }
+): [string, string] {
+  const tier = Math.min(5, Math.max(1, Math.round(rating))) as 1 | 2 | 3 | 4 | 5;
+  const businessName = options?.businessName || "this place";
+  const language = options?.language || "en";
+  const tone = options?.tone || "casual";
+  const tags = options?.tags || [];
+
+  // Format aspect based on tags
+  let aspect = "overall experience";
+  if (tags.length > 0) {
+    if (tags.length === 1) {
+      aspect = tags[0].toLowerCase();
+    } else {
+      const formattedTags = tags.map((t) => t.toLowerCase());
+      const last = formattedTags.pop();
+      aspect = `${formattedTags.join(", ")} and ${last}`;
+    }
+  } else {
+    aspect = language === "hi" ? "overall service" : "overall experience";
+  }
+
+  const templatesByTone =
+    LOCAL_TEMPLATES[language]?.[tone] || LOCAL_TEMPLATES[language]?.["casual"];
+  const templates =
+    templatesByTone?.[tier] || templatesByTone?.[5] || FALLBACK_REVIEWS[tier];
+
+  // Pick two different templates if possible
+  let t1 = templates[0];
+  let t2 = templates[templates.length - 1];
+
+  if (templates.length > 1) {
+    const idx1 = Math.floor(Math.random() * templates.length);
+    let idx2 = Math.floor(Math.random() * templates.length);
+    while (idx2 === idx1) {
+      idx2 = Math.floor(Math.random() * templates.length);
+    }
+    t1 = templates[idx1];
+    t2 = templates[idx2];
+  }
+
+  const r1 = t1.replace(/{businessName}/g, businessName).replace(/{aspect}/g, aspect);
+  const r2 = t2.replace(/{businessName}/g, businessName).replace(/{aspect}/g, aspect);
+
+  return [r1, r2];
 }

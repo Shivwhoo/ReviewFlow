@@ -1,5 +1,14 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
+export interface IOnboardingAnswers {
+  uniqueFeatures: string;
+  targetCustomer: string;
+  popularProducts: string;
+  compliments: string;
+  reviewTone: "warm" | "professional" | "enthusiastic";
+  keywords?: string;
+}
+
 export interface IBusiness extends Document {
   _id: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -9,6 +18,9 @@ export interface IBusiness extends Document {
   logo?: string;
   defaultLanguage: "en" | "hi";
   isActive: boolean;
+  onboardingCompleted: boolean;
+  onboardingAnswers?: IOnboardingAnswers;
+  aiContextPrompt?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +58,22 @@ const BusinessSchema = new Schema<IBusiness>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    onboardingCompleted: {
+      type: Boolean,
+      default: false,
+    },
+    onboardingAnswers: {
+      uniqueFeatures: { type: String, default: "" },
+      targetCustomer: { type: String, default: "" },
+      popularProducts: { type: String, default: "" },
+      compliments: { type: String, default: "" },
+      reviewTone: { type: String, default: "warm" },
+      keywords: { type: String, default: "" },
+    },
+    aiContextPrompt: {
+      type: String,
+      default: "",
     },
   },
   {

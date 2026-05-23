@@ -2,21 +2,47 @@
 
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
-import { QrCode, Eye, MousePointerClick, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { QrCode, Eye, MousePointerClick, Sparkles, Loader2 } from "lucide-react";
 import StatsCard from "@/components/dashboard/StatsCard";
 
 export default function DashboardOverview() {
   const { data: session } = useSession();
+  const router = useRouter();
 
-  const { data: stats, isLoading } = useQuery({
+  // Onboarding verification check
+  const { data: business, isLoading: businessLoading } = useQuery({
+    queryKey: ["business-settings"],
+    queryFn: async () => {
+      const res = await fetch("/api/business/settings");
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data && !data.onboardingCompleted) {
+        router.replace("/dashboard/onboarding");
+      }
+      return data;
+    },
+    enabled: !!session,
+  });
+
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
       const res = await fetch("/api/business/analytics?range=30d");
       if (!res.ok) return null;
       return res.json();
     },
-    enabled: !!session,
+    enabled: !!session && !!business?.onboardingCompleted,
   });
+
+  if (businessLoading || (business && !business.onboardingCompleted)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+        <p className="text-white/40 text-sm animate-pulse">Initializing Dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div>

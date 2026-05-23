@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import dbConnect from "@/lib/db/mongoose";
 import Business from "@/lib/db/models/Business";
 import { buildGoogleReviewUrl } from "@/lib/utils/googleLink";
+import { compileAiContextPrompt } from "@/lib/utils/aiContext";
 
 export async function GET() {
   try {
@@ -14,7 +15,20 @@ export async function GET() {
     await dbConnect();
     const business = await Business.findOne({ userId: session.user.id }).lean();
     if (!business) {
-      return NextResponse.json({ name: "", googlePlaceId: "", defaultLanguage: "en" });
+      return NextResponse.json({
+        name: "",
+        googlePlaceId: "",
+        defaultLanguage: "en",
+        onboardingCompleted: false,
+        onboardingAnswers: {
+          uniqueFeatures: "",
+          targetCustomer: "",
+          popularProducts: "",
+          compliments: "",
+          reviewTone: "warm",
+          keywords: "",
+        },
+      });
     }
 
     return NextResponse.json(business);
@@ -48,12 +62,21 @@ export async function PUT(request: NextRequest) {
         defaultLanguage: body.defaultLanguage || "en",
       });
     } else {
-      if (body.name) business.name = body.name;
-      if (body.googlePlaceId) {
+      if (body.name !== undefined) business.name = body.name;
+      if (body.googlePlaceId !== undefined) {
         business.googlePlaceId = body.googlePlaceId;
         business.reviewUrl = buildGoogleReviewUrl(body.googlePlaceId);
       }
-      if (body.defaultLanguage) business.defaultLanguage = body.defaultLanguage;
+      if (body.defaultLanguage !== undefined) business.defaultLanguage = body.defaultLanguage;
+    }
+
+    if (body.onboardingAnswers) {
+      business.onboardingAnswers = body.onboardingAnswers;
+      business.aiContextPrompt = compileAiContextPrompt(body.onboardingAnswers);
+    }
+
+    if (typeof body.onboardingCompleted === "boolean") {
+      business.onboardingCompleted = body.onboardingCompleted;
     }
 
     await business.save();

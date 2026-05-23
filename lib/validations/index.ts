@@ -7,6 +7,7 @@ export const generateReviewSchema = z.object({
   tags: z.array(z.string()).default([]),
   tone: z.enum(["casual", "professional", "genz", "short"]),
   language: z.enum(["en", "hi"]).optional(),
+  userNotes: z.string().optional(),
 });
 
 export type GenerateReviewInput = z.infer<typeof generateReviewSchema>;
@@ -43,12 +44,26 @@ export const batchQRSchema = z.object({
 
 export type BatchQRInput = z.infer<typeof batchQRSchema>;
 
+/** Schema for business onboarding answers */
+export const onboardingAnswersSchema = z.object({
+  uniqueFeatures: z.string().min(1, "This field is required"),
+  targetCustomer: z.string().min(1, "This field is required"),
+  popularProducts: z.string().min(1, "This field is required"),
+  compliments: z.string().min(1, "This field is required"),
+  reviewTone: z.enum(["warm", "professional", "enthusiastic"]),
+  keywords: z.string().optional(),
+});
+
+export type OnboardingAnswersInput = z.infer<typeof onboardingAnswersSchema>;
+
 /** Schema for business profile update */
 export const updateBusinessSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   googlePlaceId: z.string().optional(),
   logo: z.string().url().optional(),
   defaultLanguage: z.enum(["en", "hi"]).optional(),
+  onboardingAnswers: onboardingAnswersSchema.optional(),
+  onboardingCompleted: z.boolean().optional(),
 });
 
 export type UpdateBusinessInput = z.infer<typeof updateBusinessSchema>;
