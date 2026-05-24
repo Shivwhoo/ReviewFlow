@@ -14,6 +14,7 @@ interface QRCacheData {
   locationName?: string;
   logo?: string;
   customTags?: any[];
+  defaultLanguage?: string;
 }
 
 export async function GET(request: NextRequest) {
@@ -88,6 +89,7 @@ export async function GET(request: NextRequest) {
       locationName,
       logo: business.logo,
       customTags: business.customTags,
+      defaultLanguage: business.defaultLanguage || "en",
     };
 
     // Cache in Redis with 24hr TTL

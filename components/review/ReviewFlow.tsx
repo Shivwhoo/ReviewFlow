@@ -7,6 +7,7 @@ import { ExternalLink, AlertTriangle, QrCode, Copy, Check, RotateCcw, Sparkles }
 import StarRating from "@/components/review/StarRating";
 import TagSelector from "@/components/review/TagSelector";
 import ToneSelector from "@/components/review/ToneSelector";
+import LanguageSelector from "@/components/review/LanguageSelector";
 
 interface BusinessData {
   businessId: string;
@@ -17,6 +18,7 @@ interface BusinessData {
   locationName?: string;
   logo?: string;
   customTags?: { name: string; emoji?: string; isActive?: boolean }[];
+  defaultLanguage?: string;
 }
 
 type Tone = "casual" | "professional" | "genz" | "short";
@@ -26,6 +28,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [tags, setTags] = useState<string[]>([]);
   const [tone, setTone] = useState<Tone>("casual");
   const [userNotes, setUserNotes] = useState("");
+  const [language, setLanguage] = useState<"en" | "hi">("en");
 
   const [reviews, setReviews] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -37,6 +40,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [debouncedTags, setDebouncedTags] = useState<string[]>([]);
   const [debouncedTone, setDebouncedTone] = useState<Tone>("casual");
   const [debouncedUserNotes, setDebouncedUserNotes] = useState("");
+  const [debouncedLanguage, setDebouncedLanguage] = useState<"en" | "hi">("en");
 
   // Debounce inputs to prevent rapid API calls on keystrokes
   useEffect(() => {
@@ -45,11 +49,12 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
       setDebouncedTags(tags);
       setDebouncedTone(tone);
       setDebouncedUserNotes(userNotes);
+      setDebouncedLanguage(language);
     }, 700);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [tags, tone, userNotes]);
+  }, [tags, tone, userNotes, language]);
 
   // Fetch business data from QR code
   const { data: business, isLoading: businessLoading, error: businessError } = useQuery<BusinessData>({
@@ -66,6 +71,13 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     retry: 1,
   });
 
+  // Sync language with business default language on load
+  useEffect(() => {
+    if (business?.defaultLanguage) {
+      setLanguage(business.defaultLanguage as "en" | "hi");
+    }
+  }, [business]);
+
   // Generate AI reviews (exactly 2 options)
   const {
     data: reviewData,
@@ -79,6 +91,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
       debouncedTags,
       debouncedTone,
       debouncedUserNotes,
+      debouncedLanguage,
     ],
     queryFn: async () => {
       const res = await fetch("/api/review/generate", {
@@ -90,6 +103,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
           tags: debouncedTags,
           tone: debouncedTone,
           userNotes: debouncedUserNotes,
+          language: debouncedLanguage,
         }),
       });
       if (!res.ok) throw new Error("Failed to generate reviews");
@@ -289,6 +303,15 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                 transition={{ delay: 0.1 }}
               >
                 <TagSelector selected={tags} onChange={setTags} availableTags={business?.customTags} />
+              </motion.div>
+
+              {/* Step 2.5: Language Selection */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+              >
+                <LanguageSelector value={language} onChange={setLanguage} />
               </motion.div>
 
               {/* Step 3: Tone Selection */}
