@@ -5,6 +5,14 @@ import QRCode from "@/lib/db/models/QRCode";
 import Business from "@/lib/db/models/Business";
 import ReviewScan from "@/lib/db/models/ReviewScan";
 import redis from "@/lib/redis/client";
+import { Ratelimit } from "@upstash/ratelimit";
+import { hashIp } from "@/lib/utils/hashIp";
+
+const claimRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, "60 s"),
+  analytics: true,
+});
 
 export async function GET() {
   try {
@@ -52,6 +60,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "127.0.0.1";
+    const ipHash = hashIp(ip);
+
+    const { success: rateLimitOk, limit, reset, remaining } = await claimRatelimit.limit(ipHash);
+    const rlHeaders = {
+      "X-RateLimit-Limit": limit.toString(),
+      "X-RateLimit-Remaining": remaining.toString(),
+      "X-RateLimit-Reset": reset.toString(),
+    };
+
+    if (!rateLimitOk) {
+      const retryAfter = Math.max(0, Math.ceil((reset - Date.now()) / 1000));
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        {
+          status: 429,
+          headers: {
+            ...rlHeaders,
+            "Retry-After": retryAfter.toString(),
+          },
+        }
+      );
+    }
+
     const { qrId, locationId } = await request.json();
 
     if (!qrId) {
@@ -93,7 +128,7 @@ export async function POST(request: NextRequest) {
     // Invalidate Redis cache
     await redis.del(`qr:${qrId}`);
 
-    return NextResponse.json({ success: true, qrCode });
+    return NextResponse.json({ success: true, qrCode }, { headers: rlHeaders });
   } catch (error) {
     console.error("[POST /api/business/qr-codes]", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

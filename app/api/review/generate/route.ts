@@ -27,11 +27,24 @@ export async function POST(request: NextRequest) {
       "127.0.0.1";
     const ipHash = hashIp(ip);
 
-    const { success: rateLimitOk } = await ratelimit.limit(ipHash);
+    const { success: rateLimitOk, limit, reset, remaining } = await ratelimit.limit(ipHash);
+    const rlHeaders = {
+      "X-RateLimit-Limit": limit.toString(),
+      "X-RateLimit-Remaining": remaining.toString(),
+      "X-RateLimit-Reset": reset.toString(),
+    };
+
     if (!rateLimitOk) {
+      const retryAfter = Math.max(0, Math.ceil((reset - Date.now()) / 1000));
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
-        { status: 429 }
+        {
+          status: 429,
+          headers: {
+            ...rlHeaders,
+            "Retry-After": retryAfter.toString(),
+          },
+        }
       );
     }
 
@@ -77,7 +90,10 @@ export async function POST(request: NextRequest) {
           fallback[0] = `${fallback[0]} Also, ${userNotes.trim()}.`;
           fallback[1] = `${fallback[1]} Especially ${userNotes.trim()}.`;
         }
-        return NextResponse.json({ reviews: fallback, cached: false, fallback: true });
+        return NextResponse.json(
+          { reviews: fallback, cached: false, fallback: true },
+          { headers: rlHeaders }
+        );
       }
     }
 
@@ -111,7 +127,10 @@ export async function POST(request: NextRequest) {
       } catch {
         reviewsArray = [String(cached), String(cached)];
       }
-      return NextResponse.json({ reviews: reviewsArray, cached: true });
+      return NextResponse.json(
+        { reviews: reviewsArray, cached: true },
+        { headers: rlHeaders }
+      );
     }
 
     // Generate review with Groq
@@ -193,7 +212,10 @@ export async function POST(request: NextRequest) {
       ).exec();
     }
 
-    return NextResponse.json({ reviews, cached: false, fallback: isFallback });
+    return NextResponse.json(
+      { reviews, cached: false, fallback: isFallback },
+      { headers: rlHeaders }
+    );
   } catch (error) {
     console.error("[/api/review/generate] Error:", error);
     return NextResponse.json(

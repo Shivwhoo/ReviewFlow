@@ -6,6 +6,13 @@ import { trackReviewSchema } from "@/lib/validations";
 import { hashIp } from "@/lib/utils/hashIp";
 import { buildCacheKey } from "@/lib/utils/cacheKey";
 import redis from "@/lib/redis/client";
+import { Ratelimit } from "@upstash/ratelimit";
+
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(20, "60 s"),
+  analytics: true,
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,6 +33,27 @@ export async function POST(request: NextRequest) {
       request.headers.get("x-real-ip") ||
       "127.0.0.1";
     const ipHash = hashIp(ip);
+
+    const { success: rateLimitOk, limit, reset, remaining } = await ratelimit.limit(ipHash);
+    const rlHeaders = {
+      "X-RateLimit-Limit": limit.toString(),
+      "X-RateLimit-Remaining": remaining.toString(),
+      "X-RateLimit-Reset": reset.toString(),
+    };
+
+    if (!rateLimitOk) {
+      const retryAfter = Math.max(0, Math.ceil((reset - Date.now()) / 1000));
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        {
+          status: 429,
+          headers: {
+            ...rlHeaders,
+            "Retry-After": retryAfter.toString(),
+          },
+        }
+      );
+    }
 
     await dbConnect();
 
@@ -67,7 +95,7 @@ export async function POST(request: NextRequest) {
 
     await scan.save();
 
-    return NextResponse.json({ success: true, scanId: scan._id });
+    return NextResponse.json({ success: true, scanId: scan._id }, { headers: rlHeaders });
   } catch (error) {
     console.error("[/api/review/track] Error:", error);
     return NextResponse.json(
