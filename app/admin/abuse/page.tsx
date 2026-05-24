@@ -31,36 +31,73 @@ export default function AbusePage() {
             No flagged IPs in the last 24 hours ✓
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/5">
-                  <th className="text-left py-2 px-3 text-white/40 font-medium">IP Hash</th>
-                  <th className="text-right py-2 px-3 text-white/40 font-medium">Requests</th>
-                  <th className="text-left py-2 px-3 text-white/40 font-medium">Last Seen</th>
-                  <th className="text-right py-2 px-3 text-white/40 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {abuseData.flaggedIPs.map((ip: any, i: number) => (
-                  <tr key={i} className="border-b border-white/5">
-                    <td className="py-2 px-3 font-mono text-xs text-white/60">
-                      {ip.hash?.substring(0, 16)}...
-                    </td>
-                    <td className="py-2 px-3 text-right text-white/50">{ip.count}</td>
-                    <td className="py-2 px-3 text-white/50">
-                      {new Date(ip.lastSeen).toLocaleString()}
-                    </td>
-                    <td className="py-2 px-3 text-right">
-                      <button className="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all">
-                        <Ban className="w-4 h-4" />
-                      </button>
-                    </td>
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/5">
+                    <th className="text-left py-2 px-3 text-white/40 font-medium">IP Hash</th>
+                    <th className="text-right py-2 px-3 text-white/40 font-medium">Requests</th>
+                    <th className="text-left py-2 px-3 text-white/40 font-medium">Last Seen</th>
+                    <th className="text-right py-2 px-3 text-white/40 font-medium">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {abuseData.flaggedIPs.map((ip: any, i: number) => (
+                    <tr key={i} className="border-b border-white/5">
+                      <td className="py-2 px-3 font-mono text-xs text-white/60">
+                        {ip.hash?.substring(0, 16)}...
+                      </td>
+                      <td className="py-2 px-3 text-right text-white/50">{ip.count}</td>
+                      <td className="py-2 px-3 text-white/50">
+                        {new Date(ip.lastSeen).toLocaleString()}
+                      </td>
+                      <td className="py-2 px-3 text-right">
+                        <button className="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer">
+                          <Ban className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="sm:hidden divide-y divide-white/5">
+              {abuseData.flaggedIPs.map((ip: any, i: number) => (
+                <div key={i} className="py-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs text-red-400 font-semibold bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-lg">
+                      {ip.hash?.substring(0, 12)}...
+                    </span>
+                    <button className="p-2 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer">
+                      <Ban className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-white/50">
+                    <div>
+                      <span className="block text-[9px] uppercase tracking-wider text-white/30 font-bold mb-0.5">
+                        Requests
+                      </span>
+                      <span className="text-sm font-semibold text-white">
+                        {ip.count}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-[9px] uppercase tracking-wider text-white/30 font-bold mb-0.5">
+                        Last Seen
+                      </span>
+                      <span className="text-white/70">
+                        {new Date(ip.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

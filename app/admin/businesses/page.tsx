@@ -69,7 +69,8 @@ export default function AdminBusinessesPage() {
       </div>
 
       <div className="bg-glass rounded-2xl overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/5">
@@ -132,7 +133,7 @@ export default function AdminBusinessesPage() {
                       <button
                         onClick={() => resetCreditsMutation.mutate(biz._id)}
                         disabled={resetCreditsMutation.isPending}
-                        className="p-1.5 rounded-lg text-white/30 hover:text-violet-400 hover:bg-violet-500/10 transition-all"
+                        className="p-1.5 rounded-lg text-white/30 hover:text-violet-400 hover:bg-violet-500/10 transition-all cursor-pointer"
                         title="Reset Monthly Credits"
                       >
                         <RefreshCw className={`w-4 h-4 ${resetCreditsMutation.isPending ? "animate-spin" : ""}`} />
@@ -144,7 +145,7 @@ export default function AdminBusinessesPage() {
                             suspend: biz.isActive !== false,
                           })
                         }
-                        className="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                        className="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer"
                         title={biz.isActive !== false ? "Suspend" : "Unsuspend"}
                       >
                         <Ban className="w-4 h-4" />
@@ -155,6 +156,104 @@ export default function AdminBusinessesPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View Card List */}
+        <div className="md:hidden divide-y divide-white/5">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="p-5 space-y-3">
+                <div className="h-4 bg-white/5 rounded animate-pulse w-2/3" />
+                <div className="h-3 bg-white/5 rounded animate-pulse w-1/2" />
+                <div className="h-3 bg-white/5 rounded animate-pulse w-1/3" />
+              </div>
+            ))
+          ) : !businesses?.length ? (
+            <div className="py-12 text-center text-white/30 text-sm">
+              No businesses registered yet
+            </div>
+          ) : (
+            businesses.map((biz: any) => (
+              <div key={biz._id} className="p-5 space-y-4 hover:bg-white/[0.01] transition-all">
+                {/* Header row */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-white text-base leading-tight truncate">
+                      {biz.businessName || "—"}
+                    </h3>
+                    <p className="text-xs text-white/40 mt-1 font-mono truncate">{biz.email}</p>
+                  </div>
+                  <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    biz.isActive !== false
+                      ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                      : "bg-red-500/10 border border-red-500/20 text-red-400"
+                  }`}>
+                    {biz.isActive !== false ? "Active" : "Suspended"}
+                  </span>
+                </div>
+
+                {/* Sub details row */}
+                <div className="grid grid-cols-2 gap-4 py-3 border-y border-white/5 text-xs text-white/50">
+                  <div>
+                    <span className="block text-[9px] uppercase tracking-wider text-white/30 font-bold mb-1">
+                      Credits Used
+                    </span>
+                    <span className="text-sm font-semibold text-white">
+                      {biz.creditsUsedThisMonth}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-[9px] uppercase tracking-wider text-white/30 font-bold mb-1">
+                      Subscription Tier
+                    </span>
+                    <select
+                      value={biz.subscriptionTier}
+                      onChange={(e) =>
+                        updateTierMutation.mutate({
+                          id: biz._id,
+                          tier: e.target.value,
+                        })
+                      }
+                      disabled={updateTierMutation.isPending}
+                      className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-violet-500 capitalize cursor-pointer w-full"
+                    >
+                      <option value="free" className="bg-zinc-900 text-white">Free</option>
+                      <option value="pro" className="bg-zinc-900 text-white">Pro</option>
+                      <option value="multi-location" className="bg-zinc-900 text-white">Multi-Location</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Actions row */}
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button
+                    onClick={() => resetCreditsMutation.mutate(biz._id)}
+                    disabled={resetCreditsMutation.isPending}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10 text-xs font-semibold text-white/70 hover:text-violet-400 hover:border-violet-500/30 hover:bg-violet-500/5 transition-all cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${resetCreditsMutation.isPending ? "animate-spin" : ""}`} />
+                    Reset Credits
+                  </button>
+                  <button
+                    onClick={() =>
+                      suspendMutation.mutate({
+                        id: biz._id,
+                        suspend: biz.isActive !== false,
+                      })
+                    }
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                      biz.isActive !== false
+                        ? "border-red-500/20 text-red-400 hover:bg-red-500/10"
+                        : "border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10"
+                    }`}
+                  >
+                    <Ban className="w-3.5 h-3.5" />
+                    {biz.isActive !== false ? "Suspend" : "Unsuspend"}
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

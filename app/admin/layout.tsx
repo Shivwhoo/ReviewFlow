@@ -85,16 +85,61 @@ export default function AdminLayout({
       </aside>
 
       {/* Mobile header for admin */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-surface-100/95 backdrop-blur-lg border-b border-red-500/10 flex items-center px-4">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center mr-2">
-          <span className="text-xs font-bold text-white">A</span>
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-surface-100/95 backdrop-blur-lg border-b border-red-500/10 flex items-center justify-between px-4">
+        <div className="flex items-center">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center mr-2">
+            <span className="text-xs font-bold text-white">A</span>
+          </div>
+          <span className="font-bold text-white text-sm">Admin Portal</span>
         </div>
-        <span className="font-bold text-white text-sm">Admin</span>
+
+        <div className="flex items-center gap-1.5">
+          <Link
+            href="/dashboard"
+            className="p-2 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/5 transition-all"
+            title="Back to Dashboard"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          {session?.user && (
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="p-2 rounded-lg text-white/40 hover:text-red-400 hover:bg-white/5 transition-all cursor-pointer"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
-      <main className="flex-1 lg:p-8 p-4 pt-18 lg:pt-8 overflow-auto">
+      <main className="flex-1 lg:p-8 p-4 pt-18 pb-24 lg:pb-8 lg:pt-8 overflow-auto animate-fadeIn">
         <div className="max-w-6xl mx-auto">{children}</div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 h-16 bg-surface-100/95 backdrop-blur-lg border-t border-red-500/10 flex justify-around items-center px-4 pb-safe shadow-2xl">
+        {NAV_ITEMS.map((item) => {
+          const isActive =
+            pathname === item.href ||
+            (item.href !== "/admin" && pathname?.startsWith(item.href));
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex flex-col items-center justify-center w-16 h-12 rounded-xl transition-all ${
+                isActive
+                  ? "text-red-400 font-bold"
+                  : "text-white/30 hover:text-white/60"
+              }`}
+            >
+              <Icon className="w-5 h-5 mb-0.5" />
+              <span className="text-[10px] tracking-tight">{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }

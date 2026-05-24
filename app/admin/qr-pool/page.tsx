@@ -41,14 +41,14 @@ export default function QRPoolPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-white">QR Pool</h1>
           <p className="text-white/40 mt-1">Generate and manage QR code batches</p>
         </div>
         <button
           onClick={() => setShowGenerator(!showGenerator)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white text-sm font-medium hover:from-red-400 hover:to-orange-400 transition-all"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white text-sm font-medium hover:from-red-400 hover:to-orange-400 transition-all w-full sm:w-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Generate Batch
@@ -85,7 +85,7 @@ export default function QRPoolPage() {
           className="bg-glass rounded-2xl p-6 mb-6"
         >
           <h3 className="text-lg font-semibold text-white mb-4">Generate QR Batch</h3>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <input
               type="number"
               value={batchCount}
@@ -93,14 +93,14 @@ export default function QRPoolPage() {
               min={1}
               max={1000}
               placeholder="Count"
-              className="w-24 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40"
+              className="w-full sm:w-24 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40"
             />
             <input
               type="text"
               value={batchName}
               onChange={(e) => setBatchName(e.target.value)}
               placeholder="Batch name (optional)"
-              className="flex-1 min-w-[200px] px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-red-500/40"
+              className="w-full sm:flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-red-500/40"
             />
             <button
               onClick={() =>
@@ -110,7 +110,7 @@ export default function QRPoolPage() {
                 })
               }
               disabled={generateMutation.isPending}
-              className="px-4 py-2.5 rounded-xl bg-red-500 text-white text-sm font-medium disabled:opacity-50 hover:bg-red-400 transition-all"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-red-500 text-white text-sm font-medium disabled:opacity-50 hover:bg-red-400 transition-all cursor-pointer"
             >
               {generateMutation.isPending
                 ? "Generating..."
