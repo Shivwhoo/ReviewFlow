@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { businessId, rating, tags, tone, language, userNotes } = parsed.data;
+    const { businessId, rating, tags, tone, language, userNotes, length } = parsed.data;
 
     // Fetch business
     await dbConnect();
@@ -89,6 +89,9 @@ export async function POST(request: NextRequest) {
       tone,
       lang
     );
+    if (length) {
+      cacheKey += `:len:${length}`;
+    }
     if (userNotes && userNotes.trim()) {
       cacheKey += `:notes:${userNotes.trim().toLowerCase().replace(/\s+/g, "_")}`;
     }
@@ -125,6 +128,7 @@ export async function POST(request: NextRequest) {
           language: lang as "en" | "hi",
           aiContextPrompt: business.aiContextPrompt || "",
           userNotes,
+          length,
         });
 
         const completion = await groq.chat.completions.create({

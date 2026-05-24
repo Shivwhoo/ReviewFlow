@@ -8,6 +8,7 @@ export const generateReviewSchema = z.object({
   tone: z.enum(["casual", "professional", "genz", "short"]),
   language: z.enum(["en", "hi"]).optional(),
   userNotes: z.string().optional(),
+  length: z.enum(["shorter", "longer"]).optional(),
 });
 
 export type GenerateReviewInput = z.infer<typeof generateReviewSchema>;

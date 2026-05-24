@@ -41,6 +41,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [userNotes, setUserNotes] = useState("");
   const [language, setLanguage] = useState<"en" | "hi">("en");
   const [showNotes, setShowNotes] = useState(false); // Collapsible notes toggle state
+  const [length, setLength] = useState<"shorter" | "longer">("shorter");
 
   const [reviews, setReviews] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -53,6 +54,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [debouncedTone, setDebouncedTone] = useState<Tone>("casual");
   const [debouncedUserNotes, setDebouncedUserNotes] = useState("");
   const [debouncedLanguage, setDebouncedLanguage] = useState<"en" | "hi">("en");
+  const [debouncedLength, setDebouncedLength] = useState<"shorter" | "longer">("shorter");
 
   // Debounce inputs to prevent rapid API calls on keystrokes
   useEffect(() => {
@@ -62,11 +64,12 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
       setDebouncedTone(tone);
       setDebouncedUserNotes(userNotes);
       setDebouncedLanguage(language);
+      setDebouncedLength(length);
     }, 700);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [tags, tone, userNotes, language]);
+  }, [tags, tone, userNotes, language, length]);
 
   // Fetch business data from QR code
   const { data: business, isLoading: businessLoading, error: businessError } = useQuery<BusinessData>({
@@ -104,6 +107,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
       debouncedTone,
       debouncedUserNotes,
       debouncedLanguage,
+      debouncedLength,
     ],
     queryFn: async () => {
       const res = await fetch("/api/review/generate", {
@@ -116,6 +120,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
           tone: debouncedTone,
           userNotes: debouncedUserNotes,
           language: debouncedLanguage,
+          length: debouncedLength,
         }),
       });
       if (!res.ok) throw new Error("Failed to generate reviews");
@@ -383,24 +388,56 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                 transition={{ delay: 0.2 }}
                 className="space-y-3"
               >
-                <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-5 h-5 rounded-md bg-white/5 border border-white/10 flex items-center justify-center text-xs font-black text-white/40">
-                      3
+                <div className="flex flex-col gap-3 px-1 mb-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-5 h-5 rounded-md bg-white/5 border border-white/10 flex items-center justify-center text-xs font-black text-white/40">
+                        3
+                      </div>
+                      <span className="text-xs font-bold text-white/40 uppercase tracking-wider">
+                        Tap your favorite to copy
+                      </span>
                     </div>
-                    <span className="text-xs font-bold text-white/40 uppercase tracking-wider">
-                      Tap your favorite to copy
-                    </span>
+                    
+                    <button
+                      type="button"
+                      onClick={() => regenerate()}
+                      disabled={reviewLoading}
+                      className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors disabled:opacity-50 font-bold cursor-pointer"
+                    >
+                      <RotateCcw className={`w-3.5 h-3.5 ${reviewLoading ? "animate-spin" : ""}`} />
+                      Refresh
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => regenerate()}
-                    disabled={reviewLoading}
-                    className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors disabled:opacity-50 font-bold cursor-pointer"
-                  >
-                    <RotateCcw className={`w-3.5 h-3.5 ${reviewLoading ? "animate-spin" : ""}`} />
-                    Refresh options
-                  </button>
+
+                  {/* Length adjustment switch */}
+                  <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl p-1 w-full gap-2">
+                    <span className="text-[10px] text-white/40 pl-2 font-bold uppercase tracking-wider">Review length:</span>
+                    <div className="flex bg-black/20 rounded-lg p-0.5 text-xs font-bold border border-white/5">
+                      <button
+                        type="button"
+                        onClick={() => setLength("shorter")}
+                        className={`px-3 py-1 rounded-md transition-all duration-200 cursor-pointer ${
+                          length === "shorter"
+                            ? "bg-violet-600 text-white shadow-sm font-semibold"
+                            : "text-white/40 hover:text-white/70"
+                        }`}
+                      >
+                        Shorter
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLength("longer")}
+                        className={`px-3 py-1 rounded-md transition-all duration-200 cursor-pointer ${
+                          length === "longer"
+                            ? "bg-violet-600 text-white shadow-sm font-semibold"
+                            : "text-white/40 hover:text-white/70"
+                        }`}
+                      >
+                        Longer
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <AnimatePresence mode="wait">

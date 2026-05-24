@@ -8,6 +8,7 @@ interface PromptInput {
   language: "en" | "hi";
   aiContextPrompt?: string;
   userNotes?: string;
+  length?: "shorter" | "longer";
 }
 
 const TONE_DESCRIPTIONS: Record<Tone, string> = {
@@ -47,10 +48,8 @@ CRITICAL RULES:
 - Avoid perfect grammar that sounds like a textbook. Fragments are fine: "Super fast service."
 
 2. Length Balance (Strict):
-- Casual / Professional / Gen-Z: 20–35 words. Never exceed 40 words.
-- Short & crisp: 10–20 words. Never exceed 25 words.
-- Keep the generated review extremely tight. If too long, cut extra adjectives or repetitive praise.
-- Never go below 10 words.
+{length_balance_rules}
+- Never go below 8 words.
 
 3. Avoid Spammy & Robotic Patterns:
 - Avoid robotic phrases like "overall, it was a good experience", "the food was amazing, the service was incredible...", or "I highly recommend this establishment".
@@ -105,13 +104,22 @@ export function buildPrompt(input: PromptInput): {
   system: string;
   user: string;
 } {
-  const { businessName, rating, tags, tone, language, aiContextPrompt, userNotes } = input;
+  const { businessName, rating, tags, tone, language, aiContextPrompt, userNotes, length } = input;
+
+  const isShorter = length === "shorter";
+  const lengthRule = isShorter
+    ? `- Casual / Professional / Gen-Z: 15–25 words. Never exceed 30 words.
+- Short & crisp: 8–15 words. Never exceed 18 words.
+- You MUST write extremely brief, single-sentence or very short punchy reviews.`
+    : `- Casual / Professional / Gen-Z: 35–55 words. Never exceed 60 words.
+- Short & crisp: 15–25 words. Never exceed 30 words.
+- You have the freedom to write more descriptive and fully formed sentences to capture context.`;
 
   const langLabel = language === "hi" ? "Hinglish (Hindi transliterated into English/Latin letters, written exactly like WhatsApp chat. E.g. 'bahut achha tha')" : "English";
   const toneDescription = TONE_DESCRIPTIONS[tone];
   const tagList = tags.length > 0 ? tags.join(", ") : "overall experience";
 
-  let system = `${SYSTEM_MESSAGE}\n\n`;
+  let system = `${SYSTEM_MESSAGE.replace("{length_balance_rules}", lengthRule)}\n\n`;
   
   system += `--- FEW-SHOT EXAMPLES ---\n`;
   system += `${PROMPT_EXAMPLES}\n\n`;
