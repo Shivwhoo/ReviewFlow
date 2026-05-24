@@ -46,12 +46,11 @@ CRITICAL RULES:
 - Use ellipses (...) to show a natural pause or trailing thought.
 - Avoid perfect grammar that sounds like a textbook. Fragments are fine: "Super fast service."
 
-2. Length Balance:
-- Casual / Professional / Gen-Z: 30–50 words.
-- Short & crisp: 15–25 words.
-- Never exceed 60 words. Never go below 12 words (except Short tone).
-- If the review is too long, cut extra adjectives or repetitive praise.
-- If too short, add one specific detail from the selected tags.
+2. Length Balance (Strict):
+- Casual / Professional / Gen-Z: 20–35 words. Never exceed 40 words.
+- Short & crisp: 10–20 words. Never exceed 25 words.
+- Keep the generated review extremely tight. If too long, cut extra adjectives or repetitive praise.
+- Never go below 10 words.
 
 3. Avoid Spammy & Robotic Patterns:
 - Avoid robotic phrases like "overall, it was a good experience", "the food was amazing, the service was incredible...", or "I highly recommend this establishment".
@@ -72,7 +71,12 @@ CRITICAL RULES:
 - Emojis: One or two max (😭🔥✨💯). Shorter, punchy sentences.
 
 7. Professional Tone (Still Natural):
-- Polite, clear, no slang, but still conversational – not a formal business letter. Use "I was impressed", "they handled it well", "would recommend" (not "it is my pleasure to recommend").`;
+- Polite, clear, no slang, but still conversational – not a formal business letter. Use "I was impressed", "they handled it well", "would recommend" (not "it is my pleasure to recommend").
+
+8. Hinglish Script & Transliteration Rule (CRITICAL):
+- You MUST write the entire review using the standard English/Latin alphabet only.
+- NEVER use Devanagari script (Hindi characters like बहुत, अच्छा, etc.).
+- Write transliterated Hindi exactly like a native Indian WhatsApp chat (e.g. "Arre, haircut bahut achha kiya ne", "Khana badhiya tha", "wait time thoda zyada tha"). Mix English and Hindi naturally.`;
 
 const PROMPT_EXAMPLES = `EXAMPLES of authentic, conversational reviews:
 
@@ -103,7 +107,7 @@ export function buildPrompt(input: PromptInput): {
 } {
   const { businessName, rating, tags, tone, language, aiContextPrompt, userNotes } = input;
 
-  const langLabel = language === "hi" ? "Hinglish (a natural mix of Hindi and English written in Roman/Latin script)" : "English";
+  const langLabel = language === "hi" ? "Hinglish (Hindi transliterated into English/Latin letters, written exactly like WhatsApp chat. E.g. 'bahut achha tha')" : "English";
   const toneDescription = TONE_DESCRIPTIONS[tone];
   const tagList = tags.length > 0 ? tags.join(", ") : "overall experience";
 
