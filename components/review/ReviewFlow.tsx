@@ -42,6 +42,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [language, setLanguage] = useState<"en" | "hi">("en");
   const [showNotes, setShowNotes] = useState(false); // Collapsible notes toggle state
   const [length, setLength] = useState<"shorter" | "longer">("shorter");
+  const [showHandoff, setShowHandoff] = useState(false);
 
   const [reviews, setReviews] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -210,6 +211,11 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     window.open(business.reviewUrl, "_blank", "noopener,noreferrer");
   };
 
+  const handleFinalRedirect = () => {
+    handleOpenGoogle();
+    setShowHandoff(false);
+  };
+
   // Error state: QR not found or unassigned
   if (businessError) {
     return (
@@ -276,7 +282,76 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
       </motion.div>
 
       {/* Review Flow Steps */}
-      <div className="w-full max-w-md space-y-8">
+      <AnimatePresence mode="wait">
+        {showHandoff ? (
+          <motion.div
+            key="handoff-screen"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="w-full max-w-md bg-glass border border-white/5 rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col items-center text-center space-y-6 relative overflow-hidden"
+          >
+            <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 w-full" />
+            
+            {/* Animated Success Badge */}
+            <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+              <span className="text-3xl">✅</span>
+            </div>
+
+            {/* Header */}
+            <div>
+              <h2 className="text-2xl font-black tracking-tight text-white">
+                Review Copied!
+              </h2>
+              <p className="text-xs font-bold text-emerald-400 mt-1 uppercase tracking-wider">
+                You're almost done
+              </p>
+            </div>
+
+            {/* Instructions */}
+            <p className="text-white/60 text-sm leading-relaxed max-w-xs">
+              We are sending you to Google. Just <span className="text-white font-bold underline decoration-violet-500 decoration-2">long-press</span> the text box on Google and tap <span className="text-white font-bold bg-white/5 border border-white/10 px-1.5 py-0.5 rounded">Paste</span>.
+            </p>
+
+            {/* Review Preview Card */}
+            {selectedIndex !== null && (
+              <div className="w-full p-4 rounded-xl bg-white/[0.02] border border-white/5 text-left text-xs text-white/50 leading-relaxed font-medium italic relative overflow-hidden select-none">
+                <div className="absolute top-1.5 right-2.5 text-[9px] uppercase tracking-wider text-white/15 font-bold">
+                  On Clipboard
+                </div>
+                "{reviews[selectedIndex]}"
+              </div>
+            )}
+
+            {/* Pulsing Proceed Button */}
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleFinalRedirect}
+              className="flex items-center justify-center gap-2 w-full py-4 rounded-xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white cursor-pointer transition-all duration-200 shadow-xl shadow-violet-500/25 text-sm"
+            >
+              <ExternalLink className="w-4.5 h-4.5 animate-pulse" />
+              Go to Google to Paste
+            </motion.button>
+
+            {/* Go Back Link */}
+            <button
+              type="button"
+              onClick={() => setShowHandoff(false)}
+              className="text-xs font-bold text-white/40 hover:text-white/70 transition-all cursor-pointer underline"
+            >
+              ← Go back to edit
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="standard-flow"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-full max-w-md space-y-8"
+          >
         
         {/* Step 1: Star Rating */}
         <motion.div
@@ -548,11 +623,13 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
             </div>
           )}
         </AnimatePresence>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Floating Action Button "Google Ball" for Mobile Viewports (Keyboard Occlusion Safe) */}
       <AnimatePresence>
-        {rating > 0 && selectedIndex !== null && !reviewLoading && (
+        {rating > 0 && selectedIndex !== null && !reviewLoading && !showHandoff && (
           <motion.button
             key="google-fab-ball"
             type="button"
@@ -561,7 +638,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
             exit={{ scale: 0, opacity: 0, y: 30 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={handleOpenGoogle}
+            onClick={() => setShowHandoff(true)}
             className="fixed bottom-24 right-6 z-50 md:hidden flex items-center justify-center gap-2 px-5 py-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 border border-white/20 shadow-2xl shadow-violet-500/50 text-white font-bold text-sm cursor-pointer animate-bounce hover:scale-105 active:scale-95 transition-all"
           >
             <ExternalLink className="w-4.5 h-4.5 animate-pulse" />
@@ -572,7 +649,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
 
       {/* Desktop Sticky Bottom Bar Actions */}
       <AnimatePresence>
-        {rating > 0 && !reviewLoading && reviews.length > 0 && (
+        {rating > 0 && !reviewLoading && reviews.length > 0 && !showHandoff && (
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -589,7 +666,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                   type="button"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={handleOpenGoogle}
+                  onClick={() => setShowHandoff(true)}
                   className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl
                     font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600
                     hover:from-violet-500 hover:to-fuchsia-500 text-white cursor-pointer
