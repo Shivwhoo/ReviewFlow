@@ -9,6 +9,12 @@ export interface IOnboardingAnswers {
   keywords?: string;
 }
 
+export interface ICustomTag {
+  name: string;
+  emoji?: string;
+  isActive?: boolean;
+}
+
 export interface IBusiness extends Document {
   _id: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -21,6 +27,7 @@ export interface IBusiness extends Document {
   onboardingCompleted: boolean;
   onboardingAnswers?: IOnboardingAnswers;
   aiContextPrompt?: string;
+  customTags?: ICustomTag[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -74,6 +81,14 @@ const BusinessSchema = new Schema<IBusiness>(
     aiContextPrompt: {
       type: String,
       default: "",
+    },
+    customTags: {
+      type: [{
+        name: { type: String, required: true },
+        emoji: { type: String, default: "" },
+        isActive: { type: Boolean, default: true }
+      }],
+      default: []
     },
   },
   {

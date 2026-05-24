@@ -16,6 +16,7 @@ interface BusinessData {
   reviewUrl: string;
   locationName?: string;
   logo?: string;
+  customTags?: { name: string; emoji?: string; isActive?: boolean }[];
 }
 
 type Tone = "casual" | "professional" | "genz" | "short";
@@ -287,7 +288,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
               >
-                <TagSelector selected={tags} onChange={setTags} />
+                <TagSelector selected={tags} onChange={setTags} availableTags={business?.customTags} />
               </motion.div>
 
               {/* Step 3: Tone Selection */}

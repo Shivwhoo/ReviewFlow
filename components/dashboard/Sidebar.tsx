@@ -9,6 +9,7 @@ import {
   MapPin,
   BarChart3,
   Settings,
+  Tags,
   LogOut,
   Menu,
   X,
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/qr", label: "QR Codes", icon: QrCode },
   { href: "/dashboard/locations", label: "Locations", icon: MapPin },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/dashboard/tags", label: "Custom Tags", icon: Tags },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
