@@ -37,10 +37,65 @@ Rating 4, tags Food+Price, tone Professional: "Khana achha tha aur prices reason
 
 Rating 2, tags Service, tone Short: "Service bohot slow thi. Order mein galti thi. Disappointing."`;
 
-const SYSTEM_MESSAGE = `You write short, authentic Google reviews. Never use spammy phrases like "best ever", "must visit", "hidden gem". Keep each review under 60 words. Use the exact rating and tone provided. If rating is low, be polite and constructive. Never mention that you are an AI. Write as a real customer.`;
+const SYSTEM_MESSAGE = `You are a review generator that writes super natural, human-sounding Google reviews.
+
+CRITICAL RULES:
+1. Conversational Flow:
+- Write as if speaking aloud to a friend. Use contractions: didn't, wasn't, it's, that's.
+- Start sometimes with "Oh", "Honestly", "So", "Well", "You know" (but not every review).
+- Use ellipses (...) to show a natural pause or trailing thought.
+- Avoid perfect grammar that sounds like a textbook. Fragments are fine: "Super fast service."
+
+2. Length Balance:
+- Casual / Professional / Gen-Z: 30–50 words.
+- Short & crisp: 15–25 words.
+- Never exceed 60 words. Never go below 12 words (except Short tone).
+- If the review is too long, cut extra adjectives or repetitive praise.
+- If too short, add one specific detail from the selected tags.
+
+3. Avoid Spammy & Robotic Patterns:
+- Avoid robotic phrases like "overall, it was a good experience", "the food was amazing, the service was incredible...", or "I highly recommend this establishment".
+- Instead use natural phrasings like: "Food was really good – and the staff? So friendly. Definitely going back.", "Yeah, I'd come here again. No complaints.", "Worth a visit, for sure."
+
+4. Tag Integration:
+- Do NOT list tags as a bullet or simple list. Weave them naturally into the story (e.g. "The coffee actually surprised me – super smooth. And the guy at the counter was chill. Didn't wait long either.").
+
+5. Rating-Matched Sentiment & Softened Negativity:
+- 5 stars: Enthusiastic but not over-the-top. One exclamation mark max. Can use "loved", "really enjoyed".
+- 4 stars: Positive with a tiny, polite caveat ("Really nice, though the wait was a bit long.").
+- 3 stars: Mixed. ("It was okay – food tasty but service slow.").
+- 2 stars: Disappointed but civil. Make the negative review sound a little positive/constructive. ("Honestly? Room was not clean – like, dust everywhere. But the staff was at least friendly and tried to help. Won't stay again.").
+- 1 star: Direct, civil, and not abusive. Make the negative review sound a little positive/constructive. ("Avoid. Wrong order and rude manager, though the parking was convenient and easy.").
+
+6. Gen-Z Tone (Special):
+- Use slang naturally: "slaps", "hits different", "obsessed", "vibe", "main character energy".
+- Emojis: One or two max (😭🔥✨💯). Shorter, punchy sentences.
+
+7. Professional Tone (Still Natural):
+- Polite, clear, no slang, but still conversational – not a formal business letter. Use "I was impressed", "they handled it well", "would recommend" (not "it is my pleasure to recommend").`;
+
+const PROMPT_EXAMPLES = `EXAMPLES of authentic, conversational reviews:
+
+Example 1: English – Casual (5⭐, Cafe, tags: Coffee, Staff)
+"Oh, the coffee here is actually really good. Smooth, not bitter. And the girl at the counter was super sweet – answered all my dumb questions. Definitely my new spot."
+
+Example 2: English – Short & crisp (5⭐, Auto repair, tags: Speed, Price)
+"Fast, fair price, car runs great. What more do you need?"
+
+Example 3: English – Professional (4⭐, Hospital, tags: Doctor communication, Wait time)
+"The doctor explained everything clearly, which I appreciated. Wait time was reasonable – about 15 minutes. Only small issue was the front desk could be friendlier."
+
+Example 4: Hinglish – Casual (5⭐, Salon, tags: Stylist skill, Hygiene)
+"Arre, haircut bahut achha kiya stylist ne. Aur salon bilkul clean tha. Honestly, main 2 weeks baad bhi wapas aa raha hoon."
+
+Example 5: Gen-Z (5⭐, Restaurant, tags: Food, Ambience)
+"The vibe here is immaculate fr 😭🔥 Pasta slaps so hard. Definitely my new comfort place."
+
+Example 6: Low rating (2⭐, Casual, Hotel, tags: Cleanliness, Staff)
+"Honestly? Room was not clean – like, dust everywhere. But the staff was at least friendly and tried to help. Won't stay again."`;
 
 /**
- * Build the prompt for OpenAI to generate exactly two distinct reviews in JSON format.
+ * Build the prompt for Groq to generate exactly two distinct reviews in JSON format.
  */
 export function buildPrompt(input: PromptInput): {
   system: string;
@@ -48,44 +103,43 @@ export function buildPrompt(input: PromptInput): {
 } {
   const { businessName, rating, tags, tone, language, aiContextPrompt, userNotes } = input;
 
-  const examples = language === "hi" ? HINGLISH_EXAMPLES : ENGLISH_EXAMPLES;
-  const langLabel = language === "hi" ? "Hinglish" : "English";
+  const langLabel = language === "hi" ? "Hinglish (a natural mix of Hindi and English written in Roman/Latin script)" : "English";
   const toneDescription = TONE_DESCRIPTIONS[tone];
   const tagList = tags.length > 0 ? tags.join(", ") : "overall experience";
 
   let system = `${SYSTEM_MESSAGE}\n\n`;
   
-  system += `--- FORMATTING GUIDELINES & EXAMPLES ---\n`;
-  system += `These examples show the length, formatting, and tone style. Do NOT reuse the products, details, or exact phrasing of these examples:\n${examples}\n\n`;
+  system += `--- FEW-SHOT EXAMPLES ---\n`;
+  system += `${PROMPT_EXAMPLES}\n\n`;
   
   system += `--- CRITICAL GENERATION INSTRUCTIONS ---\n`;
   system += `1. You MUST generate exactly two distinct reviews in the requested language (${langLabel}) and tone (${toneDescription}).\n`;
-  system += `2. Focus on different aspects (e.g., ${tagList}) or use different phrasing between Option 1 and Option 2.\n`;
+  system += `2. Focus on different aspects or use different phrasing between Option 1 and Option 2.\n`;
   
   if (aiContextPrompt && aiContextPrompt.trim()) {
-    system += `3. BUSINESS CONTEXT INJECTION: You are writing reviews for "${businessName}". You MUST tailor both reviews to this specific place using the background training context provided below. Weave in their unique offerings, products, or compliments:
+    system += `3. BUSINESS CONTEXT INJECTION: You are writing reviews for "${businessName}". Tailor both reviews using the background context provided below. Weave in their offerings, products, or compliments naturally:
 "${aiContextPrompt}"\n\n`;
   }
   
   if (userNotes && userNotes.trim()) {
     system += `4. CUSTOMER NOTES INJECTION: The customer wants to specifically mention the following details in their review:
 "${userNotes}"
-You MUST explicitly, prominently, and naturally weave this customer note/mention into BOTH reviews. Do not ignore this.\n\n`;
+You MUST naturally weave this customer note/mention into BOTH reviews. Do not ignore this.\n\n`;
   }
-
+  
   system += `5. RESPONSE FORMAT: You MUST return your response ONLY as a valid JSON object matching this schema:
 {
   "reviews": [
-    "first review text (incorporating business context and customer notes)",
-    "second review text (incorporating business context and customer notes)"
+    "first review option (matches rules, length, and context)",
+    "second review option (matches rules, length, and context)"
   ]
 }
 Do not include any formatting markdown, backticks, or "json" prefix wrappers. Just return the raw JSON object string.`;
 
-  let user = `Write two different short Google reviews for ${businessName}. Rating: ${rating} stars. Focus on these aspects: ${tagList}. Tone: ${toneDescription}. Language: ${langLabel}.`;
+  let user = `Write two different super natural Google reviews for ${businessName}. Rating: ${rating}/5 stars. Focus on these aspects: ${tagList}. Tone: ${toneDescription}. Language: ${langLabel}.`;
   
   if (userNotes && userNotes.trim()) {
-    user += ` Note: Prominently include/mention "${userNotes}" in both options.`;
+    user += ` Note: Naturally weave in "${userNotes}" in both options.`;
   }
 
   if (aiContextPrompt && aiContextPrompt.trim()) {
