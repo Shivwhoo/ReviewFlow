@@ -45,19 +45,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         (dbUser?.subscriptionTier as "free" | "pro" | "multi-location") ||
         "free";
 
-      if (token.email === "shivamkeshri009@gmail.com") {
-        role = "admin";
-        subscriptionTier = "multi-location";
-
-        if (!dbUser || dbUser.role !== "admin" || dbUser.subscriptionTier !== "multi-location") {
-          await db.collection("users").updateOne(
-            { email: token.email },
-            { $set: { role: "admin", subscriptionTier: "multi-location" } },
-            { upsert: true }
-          );
-        }
-      }
-
       token.role = role;
       token.subscriptionTier = subscriptionTier;
       token.userId = dbUser?._id?.toString() || (token.userId as string) || user?.id;
