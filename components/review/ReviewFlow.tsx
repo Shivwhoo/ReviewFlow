@@ -3,7 +3,18 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { ExternalLink, AlertTriangle, QrCode, Copy, Check, RotateCcw, Sparkles } from "lucide-react";
+import {
+  ExternalLink,
+  AlertTriangle,
+  QrCode,
+  Copy,
+  Check,
+  RotateCcw,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  MessageSquare
+} from "lucide-react";
 import StarRating from "@/components/review/StarRating";
 import TagSelector from "@/components/review/TagSelector";
 import ToneSelector from "@/components/review/ToneSelector";
@@ -29,6 +40,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [tone, setTone] = useState<Tone>("casual");
   const [userNotes, setUserNotes] = useState("");
   const [language, setLanguage] = useState<"en" | "hi">("en");
+  const [showNotes, setShowNotes] = useState(false); // Collapsible notes toggle state
 
   const [reviews, setReviews] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -233,8 +245,6 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     );
   }
 
-  const selectedReview = selectedIndex !== null ? reviews[selectedIndex] : null;
-
   return (
     <div className="flex flex-col items-center min-h-dvh px-4 py-6 sm:py-10 bg-[#0a0a14] relative overflow-hidden">
       
@@ -252,96 +262,144 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
             {business?.businessName?.[0]?.toUpperCase() || "R"}
           </span>
         </div>
-        <h1 className="text-xl font-bold text-white text-center">
+        <h1 className="text-2xl font-black tracking-tight text-white text-center">
           {business?.businessName}
         </h1>
         {business?.locationName && (
-          <p className="text-sm text-white/40">{business.locationName}</p>
+          <p className="text-sm font-semibold text-white/40">{business.locationName}</p>
         )}
       </motion.div>
 
       {/* Review Flow Steps */}
       <div className="w-full max-w-md space-y-8">
         
-        {/* Step 1: Star Rating + Optional Notes */}
+        {/* Step 1: Star Rating */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="space-y-4"
+          className="bg-glass rounded-2xl p-6 border border-white/5 shadow-xl relative overflow-hidden"
         >
+          <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 w-full" />
           <StarRating value={rating} onChange={setRating} />
           
+          {/* Collapsible Optional Notes form */}
           {rating > 0 && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="px-1"
-            >
-              <label className="block text-xs font-semibold text-white/40 mb-1.5 uppercase tracking-wider">
-                Anything specific you'd like to mention? (Optional)
-              </label>
-              <textarea
-                rows={2}
-                placeholder="e.g. loved the pistachio croissants, friendly barista, fast wifi..."
-                value={userNotes}
-                onChange={(e) => setUserNotes(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/40 transition-all resize-none"
-              />
-            </motion.div>
+            <div className="mt-4 pt-3 border-t border-white/5 flex flex-col items-center">
+              <AnimatePresence mode="wait">
+                {!showNotes ? (
+                  <motion.button
+                    key="add-notes-btn"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    type="button"
+                    onClick={() => setShowNotes(true)}
+                    className="flex items-center gap-1.5 text-xs font-bold text-violet-400 hover:text-violet-300 transition-colors py-1 px-3 rounded-lg hover:bg-white/5 cursor-pointer"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    + Add a specific detail (Optional)
+                  </motion.button>
+                ) : (
+                  <motion.div
+                    key="notes-textarea"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="w-full text-left"
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                        Anything specific to mention?
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowNotes(false);
+                          setUserNotes("");
+                        }}
+                        className="text-[10px] font-bold text-red-400 hover:underline cursor-pointer"
+                      >
+                        Clear & Close
+                      </button>
+                    </div>
+                    <textarea
+                      rows={2}
+                      placeholder="e.g. fast service, friendly staff, great quality..."
+                      value={userNotes}
+                      onChange={(e) => setUserNotes(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/40 transition-all resize-none"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           )}
         </motion.div>
 
-        {/* Dynamic Options appear after rating is selected */}
+        {/* Dynamic Steps unfold progressively once a rating is picked */}
         <AnimatePresence>
           {rating > 0 && (
-            <>
-              {/* Step 2: Tag Selection */}
+            <div className="space-y-6">
+              
+              {/* Step 2: What stood out? (Custom Tags Selector) */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
+                className="bg-glass rounded-2xl p-6 border border-white/5 shadow-xl relative overflow-hidden"
               >
+                <div className="absolute top-1.5 left-3 text-[10px] uppercase font-black text-white/20 tracking-wider">
+                  Step 1
+                </div>
                 <TagSelector selected={tags} onChange={setTags} availableTags={business?.customTags} />
               </motion.div>
 
-              {/* Step 2.5: Language Selection */}
+              {/* Step 3: Settings Panel (Language & Tone combined cleanly!) */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
+                className="bg-glass rounded-2xl p-6 border border-white/5 shadow-xl space-y-6 relative overflow-hidden"
               >
+                <div className="absolute top-1.5 left-3 text-[10px] uppercase font-black text-white/20 tracking-wider">
+                  Step 2
+                </div>
+                
+                {/* Language Selector */}
                 <LanguageSelector value={language} onChange={setLanguage} />
+
+                {/* Divider */}
+                <div className="border-t border-white/5 w-full my-4" />
+
+                {/* Tone Selector */}
+                <ToneSelector value={tone} onChange={setTone} />
               </motion.div>
 
-              {/* Step 3: Tone Selection */}
+              {/* Step 4: Selective Option Cards (Double reviews grid) */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-              >
-                <ToneSelector value={tone} onChange={setTone} />
-              </motion.div>
-
-              {/* Step 4: Double Selectable Reviews Option Grid */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="space-y-4"
+                className="space-y-3"
               >
                 <div className="flex items-center justify-between px-1">
-                  <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">
-                    Select & Copy Your Review
-                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-md bg-white/5 border border-white/10 flex items-center justify-center text-xs font-black text-white/40">
+                      3
+                    </div>
+                    <span className="text-xs font-bold text-white/40 uppercase tracking-wider">
+                      Tap your favorite to copy
+                    </span>
+                  </div>
                   <button
                     type="button"
                     onClick={() => regenerate()}
                     disabled={reviewLoading}
-                    className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors disabled:opacity-50 font-semibold"
+                    className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors disabled:opacity-50 font-bold cursor-pointer"
                   >
                     <RotateCcw className={`w-3.5 h-3.5 ${reviewLoading ? "animate-spin" : ""}`} />
-                    Regenerate Options
+                    Refresh options
                   </button>
                 </div>
 
@@ -380,66 +438,66 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                             onClick={() => {
                               if (!isSelected) handleSelectReview(idx);
                             }}
-                            className={`p-4 rounded-2xl border transition-all duration-200 cursor-pointer relative overflow-hidden flex flex-col gap-2.5 ${
+                            className={`p-5 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col gap-3 ${
                               isSelected
-                                ? "bg-violet-950/15 border-violet-500/80 shadow-lg shadow-violet-500/10"
+                                ? "bg-emerald-950/15 border-emerald-500 shadow-2xl shadow-emerald-500/10 scale-[1.01]"
                                 : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/[0.07]"
                             }`}
                           >
-                            {/* Option tag and Copy badge */}
+                            {/* Option Header */}
                             <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
-                              <span className={isSelected ? "text-violet-300" : "text-white/40"}>
-                                Option {idx + 1}
+                              <span className={isSelected ? "text-emerald-300 font-extrabold" : "text-white/40"}>
+                                Review Option {idx + 1}
                               </span>
                               <span className="flex items-center gap-1 transition-all">
                                 {isCopied ? (
                                   <motion.span
                                     initial={{ scale: 0.8, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
-                                    className="text-emerald-400 flex items-center gap-0.5"
+                                    className="text-emerald-400 flex items-center gap-0.5 font-bold"
                                   >
                                     <Check className="w-3.5 h-3.5" />
                                     Copied!
                                   </motion.span>
                                 ) : isSelected ? (
-                                  <span className="text-violet-400 flex items-center gap-0.5">
+                                  <span className="text-emerald-400 flex items-center gap-0.5 font-bold">
                                     <Check className="w-3.5 h-3.5" />
                                     Selected
                                   </span>
                                 ) : (
                                   <span className="text-white/25 flex items-center gap-0.5 hover:text-white/50">
                                     <Copy className="w-3 h-3" />
-                                    Click to Copy
+                                    Tap to Copy
                                   </span>
                                 )}
                               </span>
                             </div>
 
-                            {/* Review Text Body (Editable when selected or anytime) */}
+                            {/* Review Text Body */}
                             <textarea
                               rows={3}
                               value={reviewText}
                               onChange={(e) => handleEditReview(idx, e.target.value)}
                               onClick={(e) => {
-                                e.stopPropagation(); // Avoid triggering container click again
+                                e.stopPropagation();
                                 if (!isSelected) handleSelectReview(idx);
                               }}
-                              className={`w-full bg-transparent border-0 text-white p-0 text-sm focus:ring-0 focus:outline-none leading-relaxed resize-none ${
-                                isSelected ? "text-white" : "text-white/70"
+                              className={`w-full bg-transparent border-0 text-white p-0 text-sm focus:ring-0 focus:outline-none leading-relaxed resize-none cursor-text ${
+                                isSelected ? "text-white font-medium" : "text-white/70"
                               }`}
-                              placeholder="Review option..."
+                              placeholder="Generating review..."
                             />
                             
-                            {/* Animated Auto-Copy visual confirmation */}
+                            {/* Visual copy feedback message inside selected card */}
                             <AnimatePresence>
-                              {isCopied && (
+                              {isSelected && (
                                 <motion.div
-                                  initial={{ opacity: 0, y: 10 }}
+                                  initial={{ opacity: 0, y: 5 }}
                                   animate={{ opacity: 1, y: 0 }}
-                                  exit={{ opacity: 0, y: -10 }}
-                                  className="absolute bottom-2 right-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] px-2 py-0.5 rounded-md font-semibold pointer-events-none"
+                                  exit={{ opacity: 0 }}
+                                  className="mt-1 text-xs text-emerald-400 font-semibold flex items-center gap-1.5 justify-center bg-emerald-500/10 border border-emerald-500/20 py-2.5 px-3 rounded-xl pointer-events-none"
                                 >
-                                  Copied to clipboard! ✅
+                                  <span>📋 Review copied! Now tap the button to post on Google.</span>
                                 </motion.div>
                               )}
                             </AnimatePresence>
@@ -450,24 +508,44 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                   )}
                 </AnimatePresence>
               </motion.div>
-            </>
+            </div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Sticky Bottom Actions */}
+      {/* Floating Action Button "Google Ball" for Mobile Viewports (Keyboard Occlusion Safe) */}
+      <AnimatePresence>
+        {rating > 0 && selectedIndex !== null && !reviewLoading && (
+          <motion.button
+            key="google-fab-ball"
+            type="button"
+            initial={{ scale: 0, opacity: 0, y: 30 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0, opacity: 0, y: 30 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleOpenGoogle}
+            className="fixed bottom-24 right-6 z-50 md:hidden flex items-center justify-center gap-2 px-5 py-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 border border-white/20 shadow-2xl shadow-violet-500/50 text-white font-bold text-sm cursor-pointer animate-bounce hover:scale-105 active:scale-95 transition-all"
+          >
+            <ExternalLink className="w-4.5 h-4.5 animate-pulse" />
+            <span>Post Review 🚀</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop Sticky Bottom Bar Actions */}
       <AnimatePresence>
         {rating > 0 && !reviewLoading && reviews.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 40 }}
-            className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/95 to-transparent pt-10 z-30"
+            className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/95 to-transparent pt-10 z-30 hidden md:block"
           >
             <div className="max-w-md mx-auto">
               {selectedIndex === null ? (
-                <div className="text-center p-3 rounded-xl bg-violet-950/10 border border-violet-500/10 text-xs text-violet-300/80 animate-pulse font-medium">
-                  👇 Tap your favorite option above to copy and continue
+                <div className="text-center p-3 rounded-xl bg-violet-950/10 border border-violet-500/10 text-xs text-violet-300/80 animate-pulse font-semibold">
+                  👇 Tap your favorite review card option above to copy and continue
                 </div>
               ) : (
                 <motion.button
@@ -476,8 +554,8 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                   whileTap={{ scale: 0.98 }}
                   onClick={handleOpenGoogle}
                   className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl
-                    font-semibold bg-gradient-to-r from-violet-600 to-fuchsia-600
-                    hover:from-violet-500 hover:to-fuchsia-500 text-white
+                    font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600
+                    hover:from-violet-500 hover:to-fuchsia-500 text-white cursor-pointer
                     transition-all duration-200 shadow-lg shadow-violet-500/25 text-sm"
                 >
                   <ExternalLink className="w-4.5 h-4.5" />
@@ -489,8 +567,9 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
         )}
       </AnimatePresence>
 
-      {/* Spacing for sticky actions */}
-      {rating > 0 && reviews.length > 0 && <div className="h-24" />}
+      {/* Spacing for sticky bottom actions on desktop */}
+      {rating > 0 && reviews.length > 0 && <div className="h-24 hidden md:block" />}
+      {rating > 0 && reviews.length > 0 && <div className="h-32 md:hidden" />}
 
       {/* Footer */}
       <motion.p
