@@ -107,9 +107,7 @@ export default function Hero() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-b-2xl z-10" />
           {/* Screen content preview */}
           <div className="absolute inset-3 top-8 rounded-2xl bg-gradient-to-b from-[#13132a] to-[#0f0f1a] p-4 flex flex-col items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mt-4">
-              <span className="text-lg font-bold text-white">R</span>
-            </div>
+            <img src="/logo.png" alt="ReviewFlow Logo" className="w-10 h-10 object-contain mt-4" />
             <p className="text-xs text-white/60">Demo Restaurant</p>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((s) => (

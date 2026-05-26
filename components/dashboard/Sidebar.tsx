@@ -43,9 +43,7 @@ export default function DashboardSidebar() {
       <aside className="hidden lg:flex flex-col w-64 min-h-dvh bg-surface-100 border-r border-white/5 p-4">
         {/* Logo */}
         <Link href="/dashboard" className="flex items-center gap-2 mb-8 px-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-            <span className="text-sm font-bold text-white">R</span>
-          </div>
+          <img src="/logo.png" alt="ReviewFlow Logo" className="w-8 h-8 object-contain" />
           <span className="font-bold text-white">ReviewFlow</span>
         </Link>
 
@@ -115,9 +113,7 @@ export default function DashboardSidebar() {
       {/* Mobile Top Bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-surface-100/95 backdrop-blur-lg border-b border-white/5 flex items-center justify-between px-4">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-            <span className="text-xs font-bold text-white">R</span>
-          </div>
+          <img src="/logo.png" alt="ReviewFlow Logo" className="w-7 h-7 object-contain" />
           <span className="font-bold text-white text-sm">ReviewFlow</span>
         </Link>
         <button

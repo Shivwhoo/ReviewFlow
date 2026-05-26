@@ -15,9 +15,7 @@ export default function PricingPage() {
       <nav className="border-b border-white/5 bg-surface-0">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-16">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-              <span className="text-sm font-bold text-white">R</span>
-            </div>
+            <img src="/logo.png" alt="ReviewFlow Logo" className="w-8 h-8 object-contain" />
             <span className="font-bold text-white text-lg">ReviewFlow</span>
           </Link>
           <Link

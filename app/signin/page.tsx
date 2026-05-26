@@ -15,9 +15,7 @@ export default function SignInPage() {
         {/* Logo */}
         <div className="flex flex-col items-center gap-3 mb-8">
           <Link href="/">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25">
-              <span className="text-2xl font-bold text-white">R</span>
-            </div>
+            <img src="/logo.png" alt="ReviewFlow Logo" className="w-14 h-14 object-contain shadow-lg shadow-violet-500/25 rounded-2xl" />
           </Link>
           <h1 className="text-2xl font-bold text-white">Welcome back</h1>
           <p className="text-sm text-white/40 text-center">
