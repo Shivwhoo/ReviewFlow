@@ -7,7 +7,7 @@ import Link from "next/link";
 const PLANS = [
   {
     name: "Free",
-    price: "$0",
+    price: "$xx",
     period: "forever",
     description: "Perfect for trying out ReviewFlow",
     features: [
@@ -24,7 +24,7 @@ const PLANS = [
   },
   {
     name: "Pro",
-    price: "$29",
+    price: "$xx",
     period: "/month",
     description: "For growing businesses",
     features: [
@@ -43,7 +43,7 @@ const PLANS = [
   },
   {
     name: "Multi-Location",
-    price: "$79",
+    price: "$xx",
     period: "/month",
     description: "For chains & franchises",
     features: [
