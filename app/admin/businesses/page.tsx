@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { Building2, Ban, RefreshCw } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Building2, Ban, RefreshCw, Sparkles } from "lucide-react";
+import TrainingWizard from "@/components/admin/TrainingWizard";
 
 export default function AdminBusinessesPage() {
   const queryClient = useQueryClient();
+  const [trainingUserId, setTrainingUserId] = useState<string | null>(null);
 
   const { data: businesses, isLoading } = useQuery({
     queryKey: ["admin-businesses"],
@@ -14,6 +17,17 @@ export default function AdminBusinessesPage() {
       if (!res.ok) return [];
       return res.json();
     },
+  });
+
+  const { data: trainingBusiness } = useQuery({
+    queryKey: ["admin-business-settings", trainingUserId],
+    queryFn: async () => {
+      if (!trainingUserId) return null;
+      const res = await fetch(`/api/admin/businesses/${trainingUserId}/settings`);
+      if (!res.ok) throw new Error("Failed to fetch settings");
+      return res.json();
+    },
+    enabled: !!trainingUserId,
   });
 
   const suspendMutation = useMutation({
@@ -131,6 +145,13 @@ export default function AdminBusinessesPage() {
                     </td>
                     <td className="py-3 px-4 text-right flex items-center justify-end gap-1.5">
                       <button
+                        onClick={() => setTrainingUserId(biz._id)}
+                        className="p-1.5 rounded-lg text-white/30 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all cursor-pointer"
+                        title="Train AI / Onboard Business"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => resetCreditsMutation.mutate(biz._id)}
                         disabled={resetCreditsMutation.isPending}
                         className="p-1.5 rounded-lg text-white/30 hover:text-violet-400 hover:bg-violet-500/10 transition-all cursor-pointer"
@@ -227,6 +248,13 @@ export default function AdminBusinessesPage() {
                 {/* Actions row */}
                 <div className="flex items-center justify-end gap-2 pt-1">
                   <button
+                    onClick={() => setTrainingUserId(biz._id)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10 text-xs font-semibold text-white/70 hover:text-emerald-400 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Train AI
+                  </button>
+                  <button
                     onClick={() => resetCreditsMutation.mutate(biz._id)}
                     disabled={resetCreditsMutation.isPending}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10 text-xs font-semibold text-white/70 hover:text-violet-400 hover:border-violet-500/30 hover:bg-violet-500/5 transition-all cursor-pointer"
@@ -256,6 +284,15 @@ export default function AdminBusinessesPage() {
           )}
         </div>
       </div>
+      <AnimatePresence>
+        {trainingUserId && (
+          <TrainingWizard
+            userId={trainingUserId}
+            initialBusinessData={trainingBusiness}
+            onClose={() => setTrainingUserId(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
