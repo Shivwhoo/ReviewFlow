@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, Ban, RefreshCw, Sparkles } from "lucide-react";
+import { Building2, Ban, RefreshCw, Sparkles, QrCode, Link2 } from "lucide-react";
 import TrainingWizard from "@/components/admin/TrainingWizard";
+import QRManageModal from "@/components/admin/QRManageModal";
 
 export default function AdminBusinessesPage() {
   const queryClient = useQueryClient();
   const [trainingUserId, setTrainingUserId] = useState<string | null>(null);
+  const [activeQRManageBiz, setActiveQRManageBiz] = useState<any | null>(null);
 
   const { data: businesses, isLoading } = useQuery({
     queryKey: ["admin-businesses"],
@@ -114,7 +116,22 @@ export default function AdminBusinessesPage() {
               ) : (
                 businesses.map((biz: any) => (
                   <tr key={biz._id} className="border-b border-white/5 hover:bg-white/[0.02]">
-                    <td className="py-3 px-4 text-white font-medium">{biz.businessName || "—"}</td>
+                    <td className="py-3 px-4 text-white font-medium">
+                      <div>{biz.businessName || "—"}</div>
+                      {biz.qrCodes && biz.qrCodes.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {biz.qrCodes.map((qr: string) => (
+                            <span
+                              key={qr}
+                              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-violet-500/10 border border-violet-500/20 text-[9px] font-mono text-violet-300"
+                            >
+                              <QrCode className="w-2.5 h-2.5" />
+                              {qr}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </td>
                     <td className="py-3 px-4 text-white/50">{biz.email}</td>
                     <td className="py-3 px-4">
                       <select
@@ -151,6 +168,23 @@ export default function AdminBusinessesPage() {
                       >
                         <Sparkles className="w-4 h-4" />
                       </button>
+                      {biz.businessId ? (
+                        <button
+                          onClick={() => setActiveQRManageBiz(biz)}
+                          className="p-1.5 rounded-lg text-white/30 hover:text-blue-400 hover:bg-blue-500/10 transition-all cursor-pointer"
+                          title="Link & Manage Assigned QR Codes"
+                        >
+                          <QrCode className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          className="p-1.5 rounded-lg text-white/10 cursor-not-allowed"
+                          title="Please train AI / onboard business first to link QR codes"
+                        >
+                          <QrCode className="w-4 h-4 opacity-30" />
+                        </button>
+                      )}
                       <button
                         onClick={() => resetCreditsMutation.mutate(biz._id)}
                         disabled={resetCreditsMutation.isPending}
@@ -203,6 +237,19 @@ export default function AdminBusinessesPage() {
                       {biz.businessName || "—"}
                     </h3>
                     <p className="text-xs text-white/40 mt-1 font-mono truncate">{biz.email}</p>
+                    {biz.qrCodes && biz.qrCodes.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {biz.qrCodes.map((qr: string) => (
+                          <span
+                            key={qr}
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-violet-500/10 border border-violet-500/20 text-[9px] font-mono text-violet-300"
+                          >
+                            <QrCode className="w-2.5 h-2.5" />
+                            {qr}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                     biz.isActive !== false
@@ -254,6 +301,24 @@ export default function AdminBusinessesPage() {
                     <Sparkles className="w-3.5 h-3.5" />
                     Train AI
                   </button>
+                  {biz.businessId ? (
+                    <button
+                      onClick={() => setActiveQRManageBiz(biz)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10 text-xs font-semibold text-white/70 hover:text-blue-400 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all cursor-pointer"
+                    >
+                      <QrCode className="w-3.5 h-3.5" />
+                      Manage QRs
+                    </button>
+                  ) : (
+                    <button
+                      disabled
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/5 text-xs font-semibold text-white/20 cursor-not-allowed opacity-40"
+                      title="Onboard business first to link QR codes"
+                    >
+                      <QrCode className="w-3.5 h-3.5" />
+                      Manage QRs
+                    </button>
+                  )}
                   <button
                     onClick={() => resetCreditsMutation.mutate(biz._id)}
                     disabled={resetCreditsMutation.isPending}
@@ -290,6 +355,14 @@ export default function AdminBusinessesPage() {
             userId={trainingUserId}
             initialBusinessData={trainingBusiness}
             onClose={() => setTrainingUserId(null)}
+          />
+        )}
+        {activeQRManageBiz && (
+          <QRManageModal
+            businessId={activeQRManageBiz.businessId}
+            businessName={activeQRManageBiz.businessName}
+            currentlyLinkedQRs={activeQRManageBiz.qrCodes || []}
+            onClose={() => setActiveQRManageBiz(null)}
           />
         )}
       </AnimatePresence>

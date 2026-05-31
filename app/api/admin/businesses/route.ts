@@ -19,6 +19,11 @@ export async function GET() {
     const enriched = await Promise.all(
       users.map(async (user) => {
         const business = await Business.findOne({ userId: user._id }).lean();
+        let qrCodes: string[] = [];
+        if (business) {
+          const qrs = await QRCode.find({ assignedToBusinessId: business._id }).lean();
+          qrCodes = qrs.map((q) => q.qrId);
+        }
         return {
           _id: user._id,
           email: user.email,
@@ -27,7 +32,9 @@ export async function GET() {
           creditsUsedThisMonth: user.creditsUsedThisMonth,
           role: user.role,
           businessName: business?.name,
+          businessId: business?._id,
           isActive: business?.isActive ?? true,
+          qrCodes,
           createdAt: user.createdAt,
         };
       })
