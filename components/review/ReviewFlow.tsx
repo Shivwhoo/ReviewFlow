@@ -350,47 +350,242 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="w-full max-w-md space-y-8"
+            className="w-full max-w-md space-y-6"
           >
         
         {/* Step 1: Star Rating */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.05 }}
           className="bg-glass rounded-2xl p-6 border border-white/5 shadow-xl relative overflow-hidden"
         >
           <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 w-full" />
           <StarRating value={rating} onChange={setRating} />
-          
-          {/* Collapsible Optional Notes form */}
-          {rating > 0 && (
-            <div className="mt-4 pt-3 border-t border-white/5 flex flex-col items-center">
+        </motion.div>
+
+        {/* Step 2: Language Selector */}
+        {rating > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-glass rounded-2xl p-5 border border-white/5 shadow-xl relative overflow-hidden"
+          >
+            <LanguageSelector value={language} onChange={setLanguage} />
+          </motion.div>
+        )}
+
+        {/* Step 3: Generated Reviews (just below language option) */}
+        {rating > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="space-y-4"
+          >
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-bold text-white/40 uppercase tracking-wider">
+                Select your favorite review below
+              </span>
+              
+              <button
+                type="button"
+                onClick={() => regenerate()}
+                disabled={reviewLoading}
+                className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors disabled:opacity-50 font-bold cursor-pointer"
+              >
+                <RotateCcw className={`w-3.5 h-3.5 ${reviewLoading ? "animate-spin" : ""}`} />
+                Refresh
+              </button>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {reviewLoading ? (
+                <motion.div
+                  key="skeletons"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-3"
+                >
+                  {[1, 2].map((i) => (
+                    <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+                      <div className="h-4 bg-white/10 rounded w-full animate-pulse" />
+                      <div className="h-4 bg-white/10 rounded w-5/6 animate-pulse" />
+                      <div className="h-4 bg-white/10 rounded w-4/6 animate-pulse" />
+                    </div>
+                  ))}
+                </motion.div>
+              ) : reviews.length > 0 ? (
+                <motion.div
+                  key="review-cards"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4"
+                >
+                  {reviews.map((reviewText, idx) => {
+                    const isSelected = selectedIndex === idx;
+                    const isCopied = copySuccess === idx;
+
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => {
+                          if (!isSelected) handleSelectReview(idx);
+                        }}
+                        className={`p-5 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col gap-4 ${
+                          isSelected
+                            ? "bg-emerald-950/15 border-emerald-500 shadow-2xl shadow-emerald-500/10 scale-[1.01]"
+                            : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/[0.07]"
+                        }`}
+                      >
+                        {/* Option Header */}
+                        <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
+                          <span className={isSelected ? "text-emerald-300 font-extrabold" : "text-white/40"}>
+                            Review Option {idx + 1}
+                          </span>
+                          <span className="flex items-center gap-1 transition-all">
+                            {isSelected && (
+                              <span className="text-emerald-400 flex items-center gap-0.5 font-bold">
+                                <Check className="w-3.5 h-3.5" />
+                                Selected
+                              </span>
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Review Text Body */}
+                        <textarea
+                          rows={3}
+                          value={reviewText}
+                          onChange={(e) => handleEditReview(idx, e.target.value)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isSelected) handleSelectReview(idx);
+                          }}
+                          className={`w-full bg-transparent border-0 text-white p-0 text-sm focus:ring-0 focus:outline-none leading-relaxed resize-none cursor-text ${
+                            isSelected ? "text-white font-medium" : "text-white/70"
+                          }`}
+                          placeholder="Generating review..."
+                        />
+                        
+                        {/* Button Bar: Manual Copy Button & Handoff feedback */}
+                        <div className="flex items-center justify-between gap-3 pt-2 border-t border-white/5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectReview(idx);
+                            }}
+                            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+                              isCopied
+                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-extrabold"
+                                : "bg-white/10 text-white hover:bg-white/15 border border-white/10"
+                            }`}
+                          >
+                            {isCopied ? (
+                              <>
+                                <Check className="w-3.5 h-3.5" />
+                                <span>Copied!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5" />
+                                <span>Copy Review</span>
+                              </>
+                            )}
+                          </button>
+
+                          {isSelected && (
+                            <span className="text-[10px] text-emerald-400 font-semibold animate-pulse">
+                              📋 Copied! Ready to post.
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </motion.div>
+        )}
+
+        {/* Step 4: Customizations Panel (placed below the reviews) */}
+        {rating > 0 && reviews.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-glass rounded-2xl p-6 border border-white/5 shadow-xl space-y-6 relative overflow-hidden"
+          >
+            <div className="flex items-center gap-2 pb-3 border-b border-white/5">
+              <Sparkles className="w-4 h-4 text-violet-400" />
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                Customize Review Options
+              </h3>
+            </div>
+
+            {/* Customization 1: Review Length (Shorter / Longer) */}
+            <div className="space-y-2">
+              <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                Review Length
+              </label>
+              <div className="flex bg-black/20 rounded-xl p-1 text-xs font-bold border border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setLength("shorter")}
+                  className={`flex-1 py-2 rounded-lg transition-all duration-200 cursor-pointer text-center ${
+                    length === "shorter"
+                      ? "bg-violet-600 text-white shadow-sm font-semibold"
+                      : "text-white/40 hover:text-white/70"
+                  }`}
+                >
+                  Shorter
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLength("longer")}
+                  className={`flex-1 py-2 rounded-lg transition-all duration-200 cursor-pointer text-center ${
+                    length === "longer"
+                      ? "bg-violet-600 text-white shadow-sm font-semibold"
+                      : "text-white/40 hover:text-white/70"
+                  }`}
+                >
+                  Longer
+                </button>
+              </div>
+            </div>
+
+            {/* Customization 2: Tone Selector */}
+            <div className="space-y-2">
+              <ToneSelector value={tone} onChange={setTone} />
+            </div>
+
+            {/* Customization 3: Tag Selector (What stood out) */}
+            <div className="space-y-2">
+              <TagSelector selected={tags} onChange={setTags} availableTags={business?.customTags} />
+            </div>
+
+            {/* Customization 4: Specific Details / User Notes */}
+            <div className="space-y-2 pt-4 border-t border-white/5">
               <AnimatePresence mode="wait">
                 {!showNotes ? (
-                  <motion.button
-                    key="add-notes-btn"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                  <button
                     type="button"
                     onClick={() => setShowNotes(true)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-violet-400 hover:text-violet-300 transition-colors py-1 px-3 rounded-lg hover:bg-white/5 cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs font-bold text-violet-400 hover:text-violet-300 transition-colors py-2.5 px-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 w-full justify-center cursor-pointer"
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
                     + Add a specific detail (Optional)
-                  </motion.button>
+                  </button>
                 ) : (
-                  <motion.div
-                    key="notes-textarea"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="w-full text-left"
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
+                  <div className="w-full text-left space-y-2">
+                    <div className="flex items-center justify-between">
                       <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider">
-                        Anything specific to mention?
+                        Specific detail or keyword
                       </label>
                       <button
                         type="button"
@@ -410,219 +605,12 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                       onChange={(e) => setUserNotes(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/40 transition-all resize-none"
                     />
-                  </motion.div>
+                  </div>
                 )}
               </AnimatePresence>
             </div>
-          )}
-        </motion.div>
-
-        {/* Dynamic Steps unfold progressively once a rating is picked */}
-        <AnimatePresence>
-          {rating > 0 && (
-            <div className="space-y-6">
-              
-              {/* Step 2: What stood out? (Custom Tags Selector) */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="bg-glass rounded-2xl p-6 border border-white/5 shadow-xl relative overflow-hidden"
-              >
-                <div className="absolute top-1.5 left-3 text-[10px] uppercase font-black text-white/20 tracking-wider">
-                  Step 1
-                </div>
-                <TagSelector selected={tags} onChange={setTags} availableTags={business?.customTags} />
-              </motion.div>
-
-              {/* Step 3: Settings Panel (Language & Tone combined cleanly!) */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-                className="bg-glass rounded-2xl p-6 border border-white/5 shadow-xl space-y-6 relative overflow-hidden"
-              >
-                <div className="absolute top-1.5 left-3 text-[10px] uppercase font-black text-white/20 tracking-wider">
-                  Step 2
-                </div>
-                
-                {/* Language Selector */}
-                <LanguageSelector value={language} onChange={setLanguage} />
-
-                {/* Divider */}
-                <div className="border-t border-white/5 w-full my-4" />
-
-                {/* Tone Selector */}
-                <ToneSelector value={tone} onChange={setTone} />
-              </motion.div>
-
-              {/* Step 4: Selective Option Cards (Double reviews grid) */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="space-y-3"
-              >
-                <div className="flex flex-col gap-3 px-1 mb-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-5 h-5 rounded-md bg-white/5 border border-white/10 flex items-center justify-center text-xs font-black text-white/40">
-                        3
-                      </div>
-                      <span className="text-xs font-bold text-white/40 uppercase tracking-wider">
-                        Tap your favorite to copy
-                      </span>
-                    </div>
-                    
-                    <button
-                      type="button"
-                      onClick={() => regenerate()}
-                      disabled={reviewLoading}
-                      className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors disabled:opacity-50 font-bold cursor-pointer"
-                    >
-                      <RotateCcw className={`w-3.5 h-3.5 ${reviewLoading ? "animate-spin" : ""}`} />
-                      Refresh
-                    </button>
-                  </div>
-
-                  {/* Length adjustment switch */}
-                  <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl p-1 w-full gap-2">
-                    <span className="text-[10px] text-white/40 pl-2 font-bold uppercase tracking-wider">Review length:</span>
-                    <div className="flex bg-black/20 rounded-lg p-0.5 text-xs font-bold border border-white/5">
-                      <button
-                        type="button"
-                        onClick={() => setLength("shorter")}
-                        className={`px-3 py-1 rounded-md transition-all duration-200 cursor-pointer ${
-                          length === "shorter"
-                            ? "bg-violet-600 text-white shadow-sm font-semibold"
-                            : "text-white/40 hover:text-white/70"
-                        }`}
-                      >
-                        Shorter
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setLength("longer")}
-                        className={`px-3 py-1 rounded-md transition-all duration-200 cursor-pointer ${
-                          length === "longer"
-                            ? "bg-violet-600 text-white shadow-sm font-semibold"
-                            : "text-white/40 hover:text-white/70"
-                        }`}
-                      >
-                        Longer
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <AnimatePresence mode="wait">
-                  {reviewLoading ? (
-                    <motion.div
-                      key="skeletons"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="space-y-3"
-                    >
-                      {[1, 2].map((i) => (
-                        <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                          <div className="h-4 bg-white/10 rounded w-full animate-pulse" />
-                          <div className="h-4 bg-white/10 rounded w-5/6 animate-pulse" />
-                          <div className="h-4 bg-white/10 rounded w-4/6 animate-pulse" />
-                        </div>
-                      ))}
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="review-cards"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="space-y-4"
-                    >
-                      {reviews.map((reviewText, idx) => {
-                        const isSelected = selectedIndex === idx;
-                        const isCopied = copySuccess === idx;
-
-                        return (
-                          <div
-                            key={idx}
-                            onClick={() => {
-                              if (!isSelected) handleSelectReview(idx);
-                            }}
-                            className={`p-5 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col gap-3 ${
-                              isSelected
-                                ? "bg-emerald-950/15 border-emerald-500 shadow-2xl shadow-emerald-500/10 scale-[1.01]"
-                                : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/[0.07]"
-                            }`}
-                          >
-                            {/* Option Header */}
-                            <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
-                              <span className={isSelected ? "text-emerald-300 font-extrabold" : "text-white/40"}>
-                                Review Option {idx + 1}
-                              </span>
-                              <span className="flex items-center gap-1 transition-all">
-                                {isCopied ? (
-                                  <motion.span
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className="text-emerald-400 flex items-center gap-0.5 font-bold"
-                                  >
-                                    <Check className="w-3.5 h-3.5" />
-                                    Copied!
-                                  </motion.span>
-                                ) : isSelected ? (
-                                  <span className="text-emerald-400 flex items-center gap-0.5 font-bold">
-                                    <Check className="w-3.5 h-3.5" />
-                                    Selected
-                                  </span>
-                                ) : (
-                                  <span className="text-white/25 flex items-center gap-0.5 hover:text-white/50">
-                                    <Copy className="w-3 h-3" />
-                                    Tap to Copy
-                                  </span>
-                                )}
-                              </span>
-                            </div>
-
-                            {/* Review Text Body */}
-                            <textarea
-                              rows={3}
-                              value={reviewText}
-                              onChange={(e) => handleEditReview(idx, e.target.value)}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (!isSelected) handleSelectReview(idx);
-                              }}
-                              className={`w-full bg-transparent border-0 text-white p-0 text-sm focus:ring-0 focus:outline-none leading-relaxed resize-none cursor-text ${
-                                isSelected ? "text-white font-medium" : "text-white/70"
-                              }`}
-                              placeholder="Generating review..."
-                            />
-                            
-                            {/* Visual copy feedback message inside selected card */}
-                            <AnimatePresence>
-                              {isSelected && (
-                                <motion.div
-                                  initial={{ opacity: 0, y: 5 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  exit={{ opacity: 0 }}
-                                  className="mt-1 text-xs text-emerald-400 font-semibold flex items-center gap-1.5 justify-center bg-emerald-500/10 border border-emerald-500/20 py-2.5 px-3 rounded-xl pointer-events-none"
-                                >
-                                  <span>📋 Review copied! Now tap the button to post on Google.</span>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-                        );
-                      })}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+          </motion.div>
+        )}
           </motion.div>
         )}
       </AnimatePresence>
