@@ -13,7 +13,8 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
-  MessageSquare
+  MessageSquare,
+  Star
 } from "lucide-react";
 import StarRating from "@/components/review/StarRating";
 import TagSelector from "@/components/review/TagSelector";
@@ -34,8 +35,18 @@ interface BusinessData {
 
 type Tone = "casual" | "professional" | "genz" | "short";
 
+const ratingLabels = {
+  1: "Poor",
+  2: "Fair",
+  3: "Good",
+  4: "Very Good",
+  5: "Excellent",
+};
+
 export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(true);
   const [tags, setTags] = useState<string[]>([]);
   const [tone, setTone] = useState<Tone>("casual");
   const [userNotes, setUserNotes] = useState("");
@@ -49,6 +60,11 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   
   const [copySuccess, setCopySuccess] = useState<number | null>(null);
   const [userEdited, setUserEdited] = useState(false);
+
+  const handleRatingSelect = (selected: number) => {
+    setRating(selected);
+    setIsModalOpen(false);
+  };
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [debouncedTags, setDebouncedTags] = useState<string[]>([]);
@@ -279,6 +295,26 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
         {business?.locationName && (
           <p className="text-sm font-semibold text-white/40">{business.locationName}</p>
         )}
+        
+        {/* Clickable Header Rating Stars */}
+        {rating > 0 && (
+          <div className="flex items-center gap-1.5 mt-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                onClick={() => setIsModalOpen(true)}
+                className="p-0.5 cursor-pointer hover:scale-110 transition-transform"
+                aria-label={`Change rating, currently ${rating} stars`}
+              >
+                <Star
+                  className={`w-4 h-4 ${
+                    star <= rating ? "fill-violet-400 text-violet-400" : "text-white/20"
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </motion.div>
 
       {/* Review Flow Steps */}
@@ -353,16 +389,6 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
             className="w-full max-w-md space-y-6"
           >
         
-        {/* Step 1: Star Rating */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="bg-glass rounded-2xl p-6 border border-white/5 shadow-xl relative overflow-hidden"
-        >
-          <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 w-full" />
-          <StarRating value={rating} onChange={setRating} />
-        </motion.div>
 
         {/* Step 2: Language Selector */}
         {rating > 0 && (
@@ -674,14 +700,114 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
       {rating > 0 && reviews.length > 0 && <div className="h-32 md:hidden" />}
 
       {/* Footer */}
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="mt-auto pt-8 text-xs text-white/20"
-      >
-        Powered by ReviewFlow AI
-      </motion.p>
+      <div className="mt-auto pt-10 pb-6 flex flex-col items-center gap-3 text-xs text-white/20 border-t border-white/5 w-full max-w-md">
+        <p className="font-bold uppercase tracking-wider text-[10px] text-white/10">
+          Powered by ReviewFlow AI
+        </p>
+        <a 
+          href="tel:9334947294" 
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-white/40 hover:text-white/80 transition-colors font-semibold"
+        >
+          📞 9334947294
+        </a>
+      </div>
+
+      {/* POPUP STAR MODAL */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
+            role="dialog"
+            aria-modal="true"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-[#121222] border border-white/10 rounded-3xl p-6 sm:p-8 w-full max-w-sm shadow-2xl relative flex flex-col items-center gap-6"
+            >
+              {/* Logo in Modal */}
+              <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-lg shadow-violet-500/25">
+                {business?.logo ? (
+                  <img src={business.logo} alt="Logo" className="w-10 h-10 object-contain" />
+                ) : (
+                  <span className="text-2xl font-bold text-white">
+                    {business?.businessName?.[0]?.toUpperCase() || "R"}
+                  </span>
+                )}
+              </div>
+
+              {/* Title */}
+              <div className="text-center space-y-1">
+                <h2 className="text-xl font-black tracking-tight text-white">
+                  How was your experience?
+                </h2>
+                <p className="text-xs text-white/40 font-bold uppercase tracking-wider">
+                  at {business?.businessName}
+                </p>
+              </div>
+
+              {/* 5 Interactive Stars */}
+              <div className="flex gap-1.5">
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const isFilled = star <= (hoverRating || rating);
+                  return (
+                    <button
+                      key={star}
+                      type="button"
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => handleRatingSelect(star)}
+                      className="p-1 cursor-pointer transition-transform hover:scale-115 active:scale-95 duration-100"
+                      aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
+                    >
+                      <Star
+                        className={`w-11 h-11 transition-all ${
+                          isFilled
+                            ? "fill-violet-400 text-violet-400 filter drop-shadow-[0_0_8px_rgba(167,139,250,0.4)]"
+                            : "text-white/20"
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Rating Label (Poor -> Excellent) */}
+              <div className="h-6 flex items-center justify-center">
+                <AnimatePresence mode="wait">
+                  {(hoverRating || rating) > 0 ? (
+                    <motion.span
+                      key={hoverRating || rating}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className="text-xs font-black text-violet-400 uppercase tracking-wider"
+                    >
+                      {ratingLabels[(hoverRating || rating) as 1 | 2 | 3 | 4 | 5]}
+                    </motion.span>
+                  ) : (
+                    <span className="text-xs font-bold text-white/20 uppercase tracking-wider">
+                      Select Rating
+                    </span>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Close Button if already rated */}
+              {rating > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-xs font-bold text-white/40 hover:text-white/70 underline cursor-pointer"
+                >
+                  Close & View Reviews
+                </button>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
