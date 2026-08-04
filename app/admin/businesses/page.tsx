@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, Ban, RefreshCw, Sparkles, QrCode, Link2 } from "lucide-react";
+import { Building2, Ban, RefreshCw, Sparkles, QrCode, Link2, ExternalLink } from "lucide-react";
 import TrainingWizard from "@/components/admin/TrainingWizard";
 import QRManageModal from "@/components/admin/QRManageModal";
 
@@ -168,6 +168,25 @@ export default function AdminBusinessesPage() {
                       >
                         <Sparkles className="w-4 h-4" />
                       </button>
+                      {biz.qrCodes && biz.qrCodes.length > 0 ? (
+                        <a
+                          href={`/r/${biz.qrCodes[0]}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-1.5 rounded-lg text-white/30 hover:text-blue-400 hover:bg-blue-500/10 transition-all cursor-pointer inline-flex"
+                          title="View Review Page"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      ) : (
+                        <button
+                          disabled
+                          className="p-1.5 rounded-lg text-white/10 cursor-not-allowed"
+                          title="No QR code assigned yet"
+                        >
+                          <ExternalLink className="w-4 h-4 opacity-30" />
+                        </button>
+                      )}
                       {biz.businessId ? (
                         <button
                           onClick={() => setActiveQRManageBiz(biz)}
@@ -301,6 +320,26 @@ export default function AdminBusinessesPage() {
                     <Sparkles className="w-3.5 h-3.5" />
                     Train AI
                   </button>
+                  {biz.qrCodes && biz.qrCodes.length > 0 ? (
+                    <a
+                      href={`/r/${biz.qrCodes[0]}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10 text-xs font-semibold text-white/70 hover:text-blue-400 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all cursor-pointer"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      View Page
+                    </a>
+                  ) : (
+                    <button
+                      disabled
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/5 text-xs font-semibold text-white/20 cursor-not-allowed opacity-40"
+                      title="No QR code assigned yet"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      View Page
+                    </button>
+                  )}
                   {biz.businessId ? (
                     <button
                       onClick={() => setActiveQRManageBiz(biz)}
