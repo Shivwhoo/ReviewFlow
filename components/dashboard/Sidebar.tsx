@@ -69,6 +69,16 @@ export default function DashboardSidebar() {
               </Link>
             );
           })}
+
+          {session?.user?.role === "admin" && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-red-400 hover:text-red-300 hover:bg-red-500/10 mt-4"
+            >
+              <Settings className="w-5 h-5" />
+              Admin Portal
+            </Link>
+          )}
         </nav>
 
         {/* User info */}
