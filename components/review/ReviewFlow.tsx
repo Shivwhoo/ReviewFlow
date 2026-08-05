@@ -248,38 +248,32 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
             
             <div className="w-[40px] h-[1px] bg-[#E4E4E7] mt-5 mb-6"></div>
 
-            <div className="flex items-center justify-center gap-2 mb-8">
+            <div className="flex items-center justify-center mb-8">
               <h2 className="font-sans text-[16px] font-normal text-[#6B7280] tracking-[1px]">
                 How was your experience?
               </h2>
-              <div className="relative flex items-center justify-center w-4 h-4 ml-1">
-                <div className="absolute inset-0 rounded-full bg-[#D4A574] opacity-40 animate-ping"></div>
-                <div className="relative w-[6px] h-[6px] rounded-full bg-[#D4A574]"></div>
-              </div>
             </div>
 
             <span className="text-[9px] font-semibold text-[#A1A1AA] uppercase tracking-[1.5px] mb-4 block">
               Rated 5.0 by your community
             </span>
 
-            <div className="flex justify-center gap-4 mb-8">
+            <div className="flex justify-center gap-3 mb-8">
               {[1, 2, 3, 4, 5].map((star) => {
                 const isFilled = star <= (hoverRating || rating);
                 return (
-                  <svg 
-                    key={star} 
-                    viewBox="0 0 24 24" 
-                    className={`w-[56px] h-[56px] cursor-pointer transition-all duration-300 transform ${
+                  <Star 
+                    key={star}
+                    strokeWidth={isFilled ? 2 : 1}
+                    className={`w-[48px] h-[48px] cursor-pointer transition-all duration-300 transform ${
                       isFilled 
-                        ? "fill-[#F5A623] stroke-[#F5A623] scale-110 drop-shadow-[0_4px_12px_rgba(245,166,35,0.35)]" 
-                        : "fill-transparent stroke-[#A1A1AA] stroke-[1.5px] hover:scale-110 hover:stroke-[#F5A623] hover:drop-shadow-[0_4px_12px_rgba(245,166,35,0.35)]"
+                        ? "fill-[#F5A623] text-[#F5A623] scale-110 drop-shadow-[0_4px_12px_rgba(245,166,35,0.35)]" 
+                        : "fill-transparent text-[#A1A1AA] hover:scale-110 hover:text-[#F5A623] hover:drop-shadow-[0_4px_12px_rgba(245,166,35,0.35)]"
                     }`}
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
                     onClick={() => setRating(star)}
-                  >
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                  </svg>
+                  />
                 )
               })}
             </div>
