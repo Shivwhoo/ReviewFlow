@@ -236,7 +236,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                     <svg 
                       key={star} 
                       viewBox="0 0 24 24" 
-                      className={`w-5 h-5 transition-all duration-300 ${isFilled ? "fill-[#C3A370] stroke-[#C3A370]" : "fill-none stroke-currentColor"}`}
+                      className={`w-5 h-5 transition-all duration-300 ${isFilled ? "fill-[#C3A370] stroke-[#C3A370]" : "fill-transparent stroke-[#A1A1AA] stroke-[1.5px]"}`}
                       onMouseEnter={() => setHoverRating(star)}
                       onMouseLeave={() => setHoverRating(0)}
                       onClick={() => setRating(star)}
@@ -435,17 +435,29 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
           )}
 
           {/* Footer Area */}
-          {business?.phoneNumber && (
-            <div className="mt-8 pt-5 border-t border-[#F4F4F5]">
-              <div className="text-center mb-2 pt-2">
+          <div className="mt-8 pt-5 border-t border-[#F4F4F5]">
+            {business?.phoneNumber && (
+              <div className="text-center mb-6 pt-2">
                 <p className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider mb-1.5">Business Contact</p>
                 <a href={`tel:${business.phoneNumber}`} className="text-[15px] font-medium text-[#2C2C2C] hover:text-[#C3A370] transition-colors">
                   {business.phoneNumber}
                 </a>
               </div>
-            </div>
-          )}
+            )}
 
+            <div className="flex flex-col gap-4 mt-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold text-[#A1A1AA] tracking-[1px] uppercase">ReviewFlow AI</span>
+                <a href="tel:9334947294" className="flex items-center gap-1.5 text-xs font-medium text-[#71717A] hover:text-[#121212] transition-colors">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  Support
+                </a>
+              </div>
+              <p className="text-[11px] text-[#A1A1AA] leading-relaxed max-w-[90%]">
+                About Us: We empower businesses to collect authentic, high-quality reviews effortlessly through personalized AI experiences.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
       <AnimatePresence>
