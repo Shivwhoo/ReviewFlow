@@ -447,6 +447,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
           )}
 
         </div>
+      </div>
       <AnimatePresence>
         {showPostPopup && (
           <motion.div
