@@ -267,8 +267,8 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                     strokeWidth={isFilled ? 2 : 1}
                     className={`w-[48px] h-[48px] cursor-pointer transition-all duration-300 transform ${
                       isFilled 
-                        ? "fill-[#F5A623] text-[#F5A623] scale-110 drop-shadow-[0_4px_12px_rgba(245,166,35,0.35)]" 
-                        : "fill-transparent text-[#A1A1AA] hover:scale-110 hover:text-[#F5A623] hover:drop-shadow-[0_4px_12px_rgba(245,166,35,0.35)]"
+                        ? "fill-[#D4A574] text-[#D4A574] scale-110 drop-shadow-[0_4px_12px_rgba(212,165,116,0.35)]" 
+                        : "fill-transparent text-[#A1A1AA] hover:scale-110 hover:text-[#D4A574] hover:drop-shadow-[0_4px_12px_rgba(212,165,116,0.35)]"
                     }`}
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
