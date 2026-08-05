@@ -274,9 +274,9 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }
+    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
   };
 
   return (
@@ -327,7 +327,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
                   className="flex flex-col items-center w-full"
                 >
                   <div className="flex items-center justify-center mb-8">
@@ -363,7 +363,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                   layoutId="rating-container"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
                   className="inline-flex items-center gap-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full px-3 py-1 mb-6"
                 >
                   <div className="flex gap-0.5">
