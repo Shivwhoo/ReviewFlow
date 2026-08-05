@@ -22,6 +22,7 @@ export interface IBusiness extends Document {
   googlePlaceId: string;
   reviewUrl: string;
   logo?: string;
+  phoneNumber?: string;
   defaultLanguage: "en" | "hi";
   isActive: boolean;
   onboardingCompleted: boolean;
@@ -55,6 +56,9 @@ const BusinessSchema = new Schema<IBusiness>(
       required: true,
     },
     logo: {
+      type: String,
+    },
+    phoneNumber: {
       type: String,
     },
     defaultLanguage: {

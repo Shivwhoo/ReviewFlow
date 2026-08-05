@@ -14,6 +14,7 @@ export default function OnboardingPage() {
   // Form State
   const [businessName, setBusinessName] = useState("");
   const [googlePlaceId, setGooglePlaceId] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   
   const [uniqueFeatures, setUniqueFeatures] = useState("");
   const [targetCustomer, setTargetCustomer] = useState("");
@@ -34,6 +35,7 @@ export default function OnboardingPage() {
       if (data) {
         if (data.name) setBusinessName(data.name);
         if (data.googlePlaceId) setGooglePlaceId(data.googlePlaceId);
+        if (data.phoneNumber) setPhoneNumber(data.phoneNumber);
         if (data.onboardingCompleted) {
           // If already completed onboarding, redirect to dashboard
           router.replace("/dashboard");
@@ -49,6 +51,7 @@ export default function OnboardingPage() {
       const payload = {
         name: businessName,
         googlePlaceId,
+        phoneNumber,
         onboardingAnswers: {
           uniqueFeatures,
           targetCustomer,
@@ -82,6 +85,7 @@ export default function OnboardingPage() {
     if (step === 1) {
       if (!businessName.trim()) stepErrors.businessName = "Business name is required";
       if (!googlePlaceId.trim()) stepErrors.googlePlaceId = "Google Place ID is required";
+      if (!phoneNumber.trim()) stepErrors.phoneNumber = "Phone number is required";
     } else if (step === 2) {
       if (!uniqueFeatures.trim()) stepErrors.uniqueFeatures = "This field is required";
       if (!targetCustomer.trim()) stepErrors.targetCustomer = "Typical customer profile is required";
@@ -214,6 +218,19 @@ export default function OnboardingPage() {
                     <p className="text-[11px] text-white/30 mt-1.5 leading-relaxed">
                       Used to generate your customer redirection link. You can look it up in your Google Business profile settings or Google Maps URL.
                     </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-1">Business Phone Number</label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. +1 234 567 8900"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/40 transition-all ${
+                        errors.phoneNumber ? "border-red-500/50" : "border-white/10"
+                      }`}
+                    />
+                    {errors.phoneNumber && <p className="text-xs text-red-400 mt-1">{errors.phoneNumber}</p>}
                   </div>
                 </div>
               )}

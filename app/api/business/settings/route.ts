@@ -18,6 +18,7 @@ export async function GET() {
       return NextResponse.json({
         name: "",
         googlePlaceId: "",
+        phoneNumber: "",
         defaultLanguage: "en",
         onboardingCompleted: false,
         onboardingAnswers: {
@@ -56,6 +57,7 @@ export async function PUT(request: NextRequest) {
         userId: session.user.id,
         name: body.name || "My Business",
         googlePlaceId: body.googlePlaceId || "",
+        phoneNumber: body.phoneNumber || "",
         reviewUrl: body.googlePlaceId
           ? buildGoogleReviewUrl(body.googlePlaceId)
           : "",
@@ -67,6 +69,7 @@ export async function PUT(request: NextRequest) {
         business.googlePlaceId = body.googlePlaceId;
         business.reviewUrl = buildGoogleReviewUrl(body.googlePlaceId);
       }
+      if (body.phoneNumber !== undefined) business.phoneNumber = body.phoneNumber;
       if (body.defaultLanguage !== undefined) business.defaultLanguage = body.defaultLanguage;
     }
 

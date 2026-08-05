@@ -21,6 +21,7 @@ interface QRCacheData {
   reviewUrl: string;
   locationName?: string;
   logo?: string;
+  phoneNumber?: string;
   customTags?: any[];
   defaultLanguage?: string;
 }
@@ -123,6 +124,7 @@ export async function GET(request: NextRequest) {
       reviewUrl: business.reviewUrl,
       locationName,
       logo: business.logo,
+      phoneNumber: business.phoneNumber,
       customTags: business.customTags,
       defaultLanguage: business.defaultLanguage || "en",
     };

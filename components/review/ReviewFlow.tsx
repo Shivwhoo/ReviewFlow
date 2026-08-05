@@ -3,23 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ExternalLink,
-  AlertTriangle,
-  QrCode,
-  Copy,
-  Check,
-  RotateCcw,
-  Sparkles,
-  ChevronDown,
-  ChevronUp,
-  MessageSquare,
-  Star
-} from "lucide-react";
-import StarRating from "@/components/review/StarRating";
-import TagSelector from "@/components/review/TagSelector";
-import ToneSelector from "@/components/review/ToneSelector";
-import LanguageSelector from "@/components/review/LanguageSelector";
+import { Check, Copy, RefreshCw, Star, Info, MessageSquare } from "lucide-react";
 
 interface BusinessData {
   businessId: string;
@@ -29,42 +13,25 @@ interface BusinessData {
   reviewUrl: string;
   locationName?: string;
   logo?: string;
+  phoneNumber?: string;
   customTags?: { name: string; emoji?: string; isActive?: boolean }[];
   defaultLanguage?: string;
 }
 
 type Tone = "casual" | "professional" | "genz" | "short";
 
-const ratingLabels = {
-  1: "Poor",
-  2: "Fair",
-  3: "Good",
-  4: "Very Good",
-  5: "Excellent",
-};
-
 export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [isModalOpen, setIsModalOpen] = useState(true);
   const [tags, setTags] = useState<string[]>([]);
   const [tone, setTone] = useState<Tone>("casual");
-  const [userNotes, setUserNotes] = useState("");
   const [language, setLanguage] = useState<"en" | "hi">("en");
-  const [showNotes, setShowNotes] = useState(false); // Collapsible notes toggle state
   const [length, setLength] = useState<"shorter" | "longer">("shorter");
-  const [showHandoff, setShowHandoff] = useState(false);
 
   const [reviews, setReviews] = useState<string[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  
   const [copySuccess, setCopySuccess] = useState<number | null>(null);
   const [userEdited, setUserEdited] = useState(false);
-
-  const handleRatingSelect = (selected: number) => {
-    setRating(selected);
-    setIsModalOpen(false);
-  };
+  const [toastMessage, setToastMessage] = useState("");
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [debouncedTags, setDebouncedTags] = useState<string[]>([]);
@@ -73,22 +40,23 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [debouncedLanguage, setDebouncedLanguage] = useState<"en" | "hi">("en");
   const [debouncedLength, setDebouncedLength] = useState<"shorter" | "longer">("shorter");
 
-  // Debounce inputs to prevent rapid API calls on keystrokes
+  const [focusArea, setFocusArea] = useState<"overall" | "detail">("overall");
+  const [detailInput, setDetailInput] = useState("");
+
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       setDebouncedTags(tags);
       setDebouncedTone(tone);
-      setDebouncedUserNotes(userNotes);
+      setDebouncedUserNotes(focusArea === "detail" ? detailInput : "");
       setDebouncedLanguage(language);
       setDebouncedLength(length);
     }, 700);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [tags, tone, userNotes, language, length]);
+  }, [tags, tone, detailInput, focusArea, language, length]);
 
-  // Fetch business data from QR code
   const { data: business, isLoading: businessLoading, error: businessError } = useQuery<BusinessData>({
     queryKey: ["business-by-qr", qrId],
     queryFn: async () => {
@@ -103,14 +71,12 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     retry: 1,
   });
 
-  // Sync language with business default language on load
   useEffect(() => {
     if (business?.defaultLanguage) {
       setLanguage(business.defaultLanguage as "en" | "hi");
     }
   }, [business]);
 
-  // Generate AI reviews (exactly 2 options)
   const {
     data: reviewData,
     isLoading: reviewLoading,
@@ -147,17 +113,14 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Sync reviews array from query response
   useEffect(() => {
     if (reviewData?.reviews) {
       setReviews(reviewData.reviews);
-      setSelectedIndex(null);
       setCopySuccess(null);
       setUserEdited(false);
     }
   }, [reviewData]);
 
-  // Track events
   const trackEvent = useCallback(
     async (event: "copy" | "google", textToTrack: string) => {
       if (!business) return;
@@ -186,628 +149,319 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     [business, qrId, rating, tags, tone, userEdited]
   );
 
-  // Auto-copy on select
-  const handleSelectReview = async (index: number) => {
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(""), 2500);
+  };
+
+  const handleCopy = async (index: number) => {
     const text = reviews[index];
-    setSelectedIndex(index);
-    
     try {
       await navigator.clipboard.writeText(text);
       setCopySuccess(index);
       trackEvent("copy", text);
+      showToast("Copied to clipboard");
+      
+      setTimeout(() => {
+         window.open(business?.reviewUrl, "_blank", "noopener,noreferrer");
+      }, 1500);
+      
       setTimeout(() => {
         setCopySuccess((current) => (current === index ? null : current));
       }, 3000);
     } catch (err) {
       console.error("Auto-copy clipboard API failed: ", err);
+      showToast("Failed to copy");
     }
   };
 
-  // Handle in-place review text editing
   const handleEditReview = async (index: number, text: string) => {
     const updated = [...reviews];
     updated[index] = text;
     setReviews(updated);
     setUserEdited(true);
-
-    // If it's the currently selected review, sync editing to clipboard
-    if (selectedIndex === index) {
-      try {
-        await navigator.clipboard.writeText(text);
-      } catch (err) {
-        // Silently bypass edit clipboard sync errors
-      }
-    }
   };
 
-  // Open Google Business redirection link
-  const handleOpenGoogle = () => {
-    if (!business || selectedIndex === null) return;
-    trackEvent("google", reviews[selectedIndex]);
-    window.open(business.reviewUrl, "_blank", "noopener,noreferrer");
-  };
-
-  const handleFinalRedirect = () => {
-    handleOpenGoogle();
-    setShowHandoff(false);
-  };
-
-  // Error state: QR not found or unassigned
   if (businessError) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-dvh px-6 text-center bg-[#0a0a14]">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center gap-4"
-        >
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center">
-            <AlertTriangle className="w-8 h-8 text-amber-400" />
-          </div>
-          <h1 className="text-xl font-bold text-white">QR Code Not Active</h1>
-          <p className="text-white/50 max-w-sm">
-            This QR code has not been activated yet. Please contact the business
-            for assistance.
-          </p>
-        </motion.div>
+      <div className="flex flex-col items-center justify-center min-h-dvh px-6 text-center bg-[#F4F4F5] font-['Inter']">
+        <div className="text-red-500 mb-4">
+          <Info className="w-8 h-8 mx-auto" />
+        </div>
+        <h1 className="text-xl font-bold text-[#121212]">QR Code Not Active</h1>
+        <p className="text-[#71717A] max-w-sm mt-2 text-sm">
+          This QR code has not been activated yet. Please contact the business for assistance.
+        </p>
       </div>
     );
   }
 
-  // Loading state
   if (businessLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-dvh px-6 bg-[#0a0a14]">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex flex-col items-center gap-4"
-        >
-          <div className="w-12 h-12 rounded-xl bg-violet-500/20 flex items-center justify-center animate-pulse">
-            <QrCode className="w-6 h-6 text-violet-400" />
-          </div>
-          <div className="h-4 w-32 bg-white/10 rounded animate-pulse" />
-        </motion.div>
+      <div className="flex flex-col items-center justify-center min-h-dvh px-6 bg-[#F4F4F5]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C3A370]"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center min-h-dvh px-4 py-6 sm:py-10 bg-[#0a0a14] relative overflow-hidden">
+    <div className="min-h-dvh flex items-center justify-center bg-[#F4F4F5] p-5 font-sans text-[#121212] selection:bg-[#E8DECE]">
       
-      {/* Background Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-violet-600/5 rounded-full blur-[100px] -z-10" />
-
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center gap-2 mb-8"
-      >
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25">
-          <span className="text-2xl font-bold text-white">
-            {business?.businessName?.[0]?.toUpperCase() || "R"}
-          </span>
-        </div>
-        <h1 className="text-2xl font-black tracking-tight text-white text-center">
-          {business?.businessName}
-        </h1>
-        {business?.locationName && (
-          <p className="text-sm font-semibold text-white/40">{business.locationName}</p>
-        )}
-        
-        {/* Clickable Header Rating Stars */}
-        {rating > 0 && (
-          <div className="flex items-center gap-1.5 mt-1">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                onClick={() => setIsModalOpen(true)}
-                className="p-0.5 cursor-pointer hover:scale-110 transition-transform"
-                aria-label={`Change rating, currently ${rating} stars`}
-              >
-                <Star
-                  className={`w-4 h-4 ${
-                    star <= rating ? "fill-violet-400 text-violet-400" : "text-white/20"
-                  }`}
-                />
-              </button>
-            ))}
-          </div>
-        )}
-      </motion.div>
-
-      {/* Review Flow Steps */}
-      <AnimatePresence mode="wait">
-        {showHandoff ? (
-          <motion.div
-            key="handoff-screen"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full max-w-md bg-glass border border-white/5 rounded-2xl p-6 sm:p-8 shadow-2xl flex flex-col items-center text-center space-y-6 relative overflow-hidden"
-          >
-            <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 w-full" />
-            
-            {/* Animated Success Badge */}
-            <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-lg shadow-emerald-500/10">
-              <span className="text-3xl">✅</span>
-            </div>
-
-            {/* Header */}
-            <div>
-              <h2 className="text-2xl font-black tracking-tight text-white">
-                Review Copied!
-              </h2>
-              <p className="text-xs font-bold text-emerald-400 mt-1 uppercase tracking-wider">
-                You're almost done
-              </p>
-            </div>
-
-            {/* Instructions */}
-            <p className="text-white/60 text-sm leading-relaxed max-w-xs">
-              We are sending you to Google. Just <span className="text-white font-bold underline decoration-violet-500 decoration-2">long-press</span> the text box on Google and tap <span className="text-white font-bold bg-white/5 border border-white/10 px-1.5 py-0.5 rounded">Paste</span>.
-            </p>
-
-            {/* Review Preview Card */}
-            {selectedIndex !== null && (
-              <div className="w-full p-4 rounded-xl bg-white/[0.02] border border-white/5 text-left text-xs text-white/50 leading-relaxed font-medium italic relative overflow-hidden select-none">
-                <div className="absolute top-1.5 right-2.5 text-[9px] uppercase tracking-wider text-white/15 font-bold">
-                  On Clipboard
-                </div>
-                "{reviews[selectedIndex]}"
-              </div>
-            )}
-
-            {/* Pulsing Proceed Button */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleFinalRedirect}
-              className="flex items-center justify-center gap-2 w-full py-4 rounded-xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white cursor-pointer transition-all duration-200 shadow-xl shadow-violet-500/25 text-sm"
-            >
-              <ExternalLink className="w-4.5 h-4.5 animate-pulse" />
-              Go to Google to Paste
-            </motion.button>
-
-            {/* Go Back Link */}
-            <button
-              type="button"
-              onClick={() => setShowHandoff(false)}
-              className="text-xs font-bold text-white/40 hover:text-white/70 transition-all cursor-pointer underline"
-            >
-              ← Go back to edit
-            </button>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="standard-flow"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="w-full max-w-md space-y-6"
-          >
-        
-
-        {/* Step 2: Language Selector */}
-        {rating > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-glass rounded-2xl p-5 border border-white/5 shadow-xl relative overflow-hidden"
-          >
-            <LanguageSelector value={language} onChange={setLanguage} />
-          </motion.div>
-        )}
-
-        {/* Step 3: Generated Reviews (just below language option) */}
-        {rating > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="space-y-4"
-          >
-            <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-bold text-white/40 uppercase tracking-wider">
-                Select your favorite review below
-              </span>
-              
-              <button
-                type="button"
-                onClick={() => regenerate()}
-                disabled={reviewLoading}
-                className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors disabled:opacity-50 font-bold cursor-pointer"
-              >
-                <RotateCcw className={`w-3.5 h-3.5 ${reviewLoading ? "animate-spin" : ""}`} />
-                Refresh
-              </button>
-            </div>
-
-            <AnimatePresence mode="wait">
-              {reviewLoading ? (
-                <motion.div
-                  key="skeletons"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="space-y-3"
-                >
-                  {[1, 2].map((i) => (
-                    <div key={i} className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
-                      <div className="h-4 bg-white/10 rounded w-full animate-pulse" />
-                      <div className="h-4 bg-white/10 rounded w-5/6 animate-pulse" />
-                      <div className="h-4 bg-white/10 rounded w-4/6 animate-pulse" />
-                    </div>
-                  ))}
-                </motion.div>
-              ) : reviews.length > 0 ? (
-                <motion.div
-                  key="review-cards"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="space-y-4"
-                >
-                  {reviews.map((reviewText, idx) => {
-                    const isSelected = selectedIndex === idx;
-                    const isCopied = copySuccess === idx;
-
-                    return (
-                      <div
-                        key={idx}
-                        onClick={() => {
-                          if (!isSelected) handleSelectReview(idx);
-                        }}
-                        className={`p-5 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col gap-4 ${
-                          isSelected
-                            ? "bg-emerald-950/15 border-emerald-500 shadow-2xl shadow-emerald-500/10 scale-[1.01]"
-                            : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/[0.07]"
-                        }`}
-                      >
-                        {/* Option Header */}
-                        <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider">
-                          <span className={isSelected ? "text-emerald-300 font-extrabold" : "text-white/40"}>
-                            Review Option {idx + 1}
-                          </span>
-                          <span className="flex items-center gap-1 transition-all">
-                            {isSelected && (
-                              <span className="text-emerald-400 flex items-center gap-0.5 font-bold">
-                                <Check className="w-3.5 h-3.5" />
-                                Selected
-                              </span>
-                            )}
-                          </span>
-                        </div>
-
-                        {/* Review Text Body */}
-                        <textarea
-                          rows={3}
-                          value={reviewText}
-                          onChange={(e) => handleEditReview(idx, e.target.value)}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!isSelected) handleSelectReview(idx);
-                          }}
-                          className={`w-full bg-transparent border-0 text-white p-0 text-sm focus:ring-0 focus:outline-none leading-relaxed resize-none cursor-text ${
-                            isSelected ? "text-white font-medium" : "text-white/70"
-                          }`}
-                          placeholder="Generating review..."
-                        />
-                        
-                        {/* Button Bar: Manual Copy Button & Handoff feedback */}
-                        <div className="flex items-center justify-between gap-3 pt-2 border-t border-white/5">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSelectReview(idx);
-                            }}
-                            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-                              isCopied
-                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-extrabold"
-                                : "bg-white/10 text-white hover:bg-white/15 border border-white/10"
-                            }`}
-                          >
-                            {isCopied ? (
-                              <>
-                                <Check className="w-3.5 h-3.5" />
-                                <span>Copied!</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3.5 h-3.5" />
-                                <span>Copy Review</span>
-                              </>
-                            )}
-                          </button>
-
-                          {isSelected && (
-                            <span className="text-[10px] text-emerald-400 font-semibold animate-pulse">
-                              📋 Copied! Ready to post.
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </motion.div>
-        )}
-
-        {/* Step 4: Customizations Panel (placed below the reviews) */}
-        {rating > 0 && reviews.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-glass rounded-2xl p-6 border border-white/5 shadow-xl space-y-6 relative overflow-hidden"
-          >
-            <div className="flex items-center gap-2 pb-3 border-b border-white/5">
-              <Sparkles className="w-4 h-4 text-violet-400" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                Customize Review Options
-              </h3>
-            </div>
-
-            {/* Customization 1: Review Length (Shorter / Longer) */}
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider">
-                Review Length
-              </label>
-              <div className="flex bg-black/20 rounded-xl p-1 text-xs font-bold border border-white/5">
-                <button
-                  type="button"
-                  onClick={() => setLength("shorter")}
-                  className={`flex-1 py-2 rounded-lg transition-all duration-200 cursor-pointer text-center ${
-                    length === "shorter"
-                      ? "bg-violet-600 text-white shadow-sm font-semibold"
-                      : "text-white/40 hover:text-white/70"
-                  }`}
-                >
-                  Shorter
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLength("longer")}
-                  className={`flex-1 py-2 rounded-lg transition-all duration-200 cursor-pointer text-center ${
-                    length === "longer"
-                      ? "bg-violet-600 text-white shadow-sm font-semibold"
-                      : "text-white/40 hover:text-white/70"
-                  }`}
-                >
-                  Longer
-                </button>
-              </div>
-            </div>
-
-            {/* Customization 2: Tone Selector */}
-            <div className="space-y-2">
-              <ToneSelector value={tone} onChange={setTone} />
-            </div>
-
-            {/* Customization 3: Tag Selector (What stood out) */}
-            <div className="space-y-2">
-              <TagSelector selected={tags} onChange={setTags} availableTags={business?.customTags} />
-            </div>
-
-            {/* Customization 4: Specific Details / User Notes */}
-            <div className="space-y-2 pt-4 border-t border-white/5">
-              <AnimatePresence mode="wait">
-                {!showNotes ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowNotes(true)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-violet-400 hover:text-violet-300 transition-colors py-2.5 px-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 w-full justify-center cursor-pointer"
-                  >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    + Add a specific detail (Optional)
-                  </button>
-                ) : (
-                  <div className="w-full text-left space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider">
-                        Specific detail or keyword
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowNotes(false);
-                          setUserNotes("");
-                        }}
-                        className="text-[10px] font-bold text-red-400 hover:underline cursor-pointer"
-                      >
-                        Clear & Close
-                      </button>
-                    </div>
-                    <textarea
-                      rows={2}
-                      placeholder="e.g. fast service, friendly staff, great quality..."
-                      value={userNotes}
-                      onChange={(e) => setUserNotes(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/40 transition-all resize-none"
-                    />
-                  </div>
-                )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-        )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Floating Action Button "Google Ball" for Mobile Viewports (Keyboard Occlusion Safe) */}
-      <AnimatePresence>
-        {rating > 0 && selectedIndex !== null && !reviewLoading && !showHandoff && (
-          <motion.button
-            key="google-fab-ball"
-            type="button"
-            initial={{ scale: 0, opacity: 0, y: 30 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0, opacity: 0, y: 30 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowHandoff(true)}
-            className="fixed bottom-24 right-6 z-50 md:hidden flex items-center justify-center gap-2 px-5 py-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 border border-white/20 shadow-2xl shadow-violet-500/50 text-white font-bold text-sm cursor-pointer animate-bounce hover:scale-105 active:scale-95 transition-all"
-          >
-            <ExternalLink className="w-4.5 h-4.5 animate-pulse" />
-            <span>Post Review 🚀</span>
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      {/* Desktop Sticky Bottom Bar Actions */}
-      <AnimatePresence>
-        {rating > 0 && !reviewLoading && reviews.length > 0 && !showHandoff && (
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
-            className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/95 to-transparent pt-10 z-30 hidden md:block"
-          >
-            <div className="max-w-md mx-auto">
-              {selectedIndex === null ? (
-                <div className="text-center p-3 rounded-xl bg-violet-950/10 border border-violet-500/10 text-xs text-violet-300/80 animate-pulse font-semibold">
-                  👇 Tap your favorite review card option above to copy and continue
-                </div>
-              ) : (
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setShowHandoff(true)}
-                  className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl
-                    font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600
-                    hover:from-violet-500 hover:to-fuchsia-500 text-white cursor-pointer
-                    transition-all duration-200 shadow-lg shadow-violet-500/25 text-sm"
-                >
-                  <ExternalLink className="w-4.5 h-4.5" />
-                  Post Review on Google
-                </motion.button>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Spacing for sticky bottom actions on desktop */}
-      {rating > 0 && reviews.length > 0 && <div className="h-24 hidden md:block" />}
-      {rating > 0 && reviews.length > 0 && <div className="h-32 md:hidden" />}
-
-      {/* Footer */}
-      <div className="mt-auto pt-10 pb-6 flex flex-col items-center gap-3 text-xs text-white/20 border-t border-white/5 w-full max-w-md">
-        <p className="font-bold uppercase tracking-wider text-[10px] text-white/10">
-          Powered by ReviewFlow AI
-        </p>
-        <a 
-          href="tel:9334947294" 
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-white/40 hover:text-white/80 transition-colors font-semibold"
-        >
-          📞 9334947294
-        </a>
+      {/* Toast */}
+      <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#121212] text-white px-6 py-3 rounded-full text-[13px] font-medium shadow-[0_12px_32px_rgba(0,0,0,0.06)] flex items-center gap-2 z-50 transition-all duration-300 pointer-events-none ${toastMessage ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"}`}>
+        <Check className="w-4 h-4" />
+        <span>{toastMessage}</span>
       </div>
 
-      {/* POPUP STAR MODAL */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
-            role="dialog"
-            aria-modal="true"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-[#121222] border border-white/10 rounded-3xl p-6 sm:p-8 w-full max-w-sm shadow-2xl relative flex flex-col items-center gap-6"
-            >
-              {/* Logo in Modal */}
-              <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-lg shadow-violet-500/25">
-                {business?.logo ? (
-                  <img src={business.logo} alt="Logo" className="w-10 h-10 object-contain" />
-                ) : (
-                  <span className="text-2xl font-bold text-white">
-                    {business?.businessName?.[0]?.toUpperCase() || "R"}
-                  </span>
-                )}
-              </div>
+      <div className="w-full max-w-[420px] bg-white rounded-[20px] shadow-[0_12px_32px_rgba(0,0,0,0.06)] border border-[#E4E4E7] overflow-hidden relative">
+        <div className="p-8 sm:p-7 max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-[#E4E4E7]">
+          
+          {/* Header */}
+          <div className="text-center pb-6 border-b border-[#F4F4F5] mb-6">
+            <div className="font-['Playfair_Display'] font-medium text-2xl text-[#121212] tracking-[-0.01em] flex items-center justify-center gap-2">
+              <span className="text-[#C3A370] flex items-center">
+                 {business?.logo ? (
+                   <img src={business.logo} alt="Logo" className="w-5 h-5 object-contain" />
+                 ) : (
+                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                 )}
+              </span>
+              {business?.businessName}
+            </div>
 
-              {/* Title */}
-              <div className="text-center space-y-1">
-                <h2 className="text-xl font-black tracking-tight text-white">
-                  How was your experience?
-                </h2>
-                <p className="text-xs text-white/40 font-bold uppercase tracking-wider">
-                  at {business?.businessName}
-                </p>
-              </div>
-
-              {/* 5 Interactive Stars */}
-              <div className="flex gap-1.5">
+            <div className="flex items-center justify-center gap-3 mt-3">
+              <div className="flex gap-0.5 text-[#E4E4E7] cursor-pointer">
                 {[1, 2, 3, 4, 5].map((star) => {
                   const isFilled = star <= (hoverRating || rating);
                   return (
-                    <button
-                      key={star}
-                      type="button"
+                    <svg 
+                      key={star} 
+                      viewBox="0 0 24 24" 
+                      className={`w-5 h-5 transition-all duration-300 ${isFilled ? "fill-[#C3A370] stroke-[#C3A370]" : "fill-none stroke-currentColor"}`}
                       onMouseEnter={() => setHoverRating(star)}
                       onMouseLeave={() => setHoverRating(0)}
-                      onClick={() => handleRatingSelect(star)}
-                      className="p-1 cursor-pointer transition-transform hover:scale-115 active:scale-95 duration-100"
-                      aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
+                      onClick={() => setRating(star)}
                     >
-                      <Star
-                        className={`w-11 h-11 transition-all ${
-                          isFilled
-                            ? "fill-violet-400 text-violet-400 filter drop-shadow-[0_0_8px_rgba(167,139,250,0.4)]"
-                            : "text-white/20"
-                        }`}
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                  )
+                })}
+              </div>
+              <span className="text-xs font-medium text-[#121212] bg-[#F4F4F5] px-2.5 py-1 rounded-full tracking-[0.5px]">
+                {rating > 0 ? rating.toFixed(1) : "0.0"}
+              </span>
+            </div>
+
+            <p className="text-sm font-normal text-[#71717A] mt-4">
+              How was your experience at <strong className="text-[#121212] font-medium">{business?.businessName}</strong>?
+            </p>
+          </div>
+
+          {rating > 0 && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              
+              {/* Language */}
+              <div className="flex bg-[#F4F4F5] p-1 rounded-xl mb-8">
+                <button
+                  onClick={() => setLanguage("en")}
+                  className={`flex-1 py-2.5 px-3 border-none rounded-lg text-[13px] font-medium cursor-pointer transition-all text-center ${language === "en" ? "bg-white text-[#121212] shadow-[0_2px_8px_rgba(0,0,0,0.04)]" : "bg-transparent text-[#71717A]"}`}
+                >
+                  English
+                  <span className={`block text-[10px] font-normal mt-0.5 ${language === "en" ? "text-[#71717A]" : "text-[#A1A1AA]"}`}>Standard</span>
+                </button>
+                <button
+                  onClick={() => setLanguage("hi")}
+                  className={`flex-1 py-2.5 px-3 border-none rounded-lg text-[13px] font-medium cursor-pointer transition-all text-center ${language === "hi" ? "bg-white text-[#121212] shadow-[0_2px_8px_rgba(0,0,0,0.04)]" : "bg-transparent text-[#71717A]"}`}
+                >
+                  Hinglish
+                  <span className={`block text-[10px] font-normal mt-0.5 ${language === "hi" ? "text-[#71717A]" : "text-[#A1A1AA]"}`}>Conversational</span>
+                </button>
+              </div>
+
+              {/* Reviews */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-['Playfair_Display'] font-medium text-lg text-[#121212]">
+                  Curated <span className="text-[#C3A370] italic">Drafts</span>
+                </h3>
+                <button 
+                  onClick={() => regenerate()}
+                  disabled={reviewLoading}
+                  className="flex items-center gap-1.5 bg-transparent border-none text-[13px] font-normal text-[#71717A] hover:text-[#121212] cursor-pointer transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${reviewLoading ? "animate-spin" : ""}`} />
+                  Refresh
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-4 mb-8">
+                {reviewLoading ? (
+                  <div className="animate-pulse flex flex-col gap-4">
+                    <div className="h-32 bg-[#F4F4F5] rounded-xl border border-[#E4E4E7]"></div>
+                    <div className="h-32 bg-[#F4F4F5] rounded-xl border border-[#E4E4E7]"></div>
+                  </div>
+                ) : reviews.map((reviewText, idx) => {
+                  const isCopied = copySuccess === idx;
+                  const labels = ["Top Pick", "Personal Touch", "Highlight"];
+                  const label = labels[idx % labels.length];
+                  
+                  return (
+                    <div key={idx} className="bg-white rounded-xl p-5 border border-[#E4E4E7] transition-all hover:border-[#C3A370] hover:shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.5px] text-[#C3A370] mb-3">
+                        <Star className="w-3 h-3 fill-current" />
+                        {label}
+                      </span>
+                      
+                      <textarea
+                        rows={4}
+                        value={reviewText}
+                        onChange={(e) => handleEditReview(idx, e.target.value)}
+                        className="w-full bg-transparent border-none text-[14px] leading-[1.6] text-[#2C2C2C] font-normal mb-2 focus:outline-none resize-none"
                       />
-                    </button>
+                      
+                      <div className="flex items-center justify-end pt-4 border-t border-[#F4F4F5]">
+                        <button
+                          onClick={() => handleCopy(idx)}
+                          className={`flex items-center gap-1.5 px-4 py-2 border rounded-full text-[13px] font-medium cursor-pointer transition-all ${
+                            isCopied 
+                              ? "bg-[#238A4B] border-[#238A4B] text-white" 
+                              : "bg-[#121212] border-[#121212] text-white hover:bg-[#2C2C2C] hover:border-[#2C2C2C] active:scale-[0.98]"
+                          }`}
+                        >
+                          {isCopied ? (
+                            <>
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Copied</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Copy</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
 
-              {/* Rating Label (Poor -> Excellent) */}
-              <div className="h-6 flex items-center justify-center">
-                <AnimatePresence mode="wait">
-                  {(hoverRating || rating) > 0 ? (
-                    <motion.span
-                      key={hoverRating || rating}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className="text-xs font-black text-violet-400 uppercase tracking-wider"
+              {/* Customize Section */}
+              <div className="pt-6 border-t border-[#E4E4E7]">
+                <div className="flex items-center gap-2 mb-5">
+                  <h4 className="font-['Playfair_Display'] font-medium text-base text-[#121212]">Adjust Parameters</h4>
+                </div>
+
+                {/* Length */}
+                <div className="mb-6">
+                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.8px] text-[#71717A] mb-3">Length</span>
+                  <div className="flex gap-2 flex-wrap">
+                    <button 
+                      onClick={() => setLength("shorter")}
+                      className={`px-4 py-2 border rounded-full text-[13px] font-normal cursor-pointer transition-all ${length === "shorter" ? "border-[#C3A370] bg-[#F9F6F0] text-[#C3A370] font-medium" : "border-[#E4E4E7] bg-white text-[#71717A] hover:border-[#A1A1AA] hover:text-[#121212]"}`}
                     >
-                      {ratingLabels[(hoverRating || rating) as 1 | 2 | 3 | 4 | 5]}
-                    </motion.span>
-                  ) : (
-                    <span className="text-xs font-bold text-white/20 uppercase tracking-wider">
-                      Select Rating
-                    </span>
+                      Concise
+                    </button>
+                    <button 
+                      onClick={() => setLength("longer")}
+                      className={`px-4 py-2 border rounded-full text-[13px] font-normal cursor-pointer transition-all ${length === "longer" ? "border-[#C3A370] bg-[#F9F6F0] text-[#C3A370] font-medium" : "border-[#E4E4E7] bg-white text-[#71717A] hover:border-[#A1A1AA] hover:text-[#121212]"}`}
+                    >
+                      Detailed
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tone */}
+                <div className="mb-6">
+                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.8px] text-[#71717A] mb-3">Tone</span>
+                  <div className="flex gap-2 flex-wrap">
+                    {[
+                      { val: "casual", label: "Conversational", sub: "Friendly & natural" },
+                      { val: "professional", label: "Professional", sub: "Polished & objective" },
+                      { val: "genz", label: "Modern", sub: "Contemporary styling" },
+                      { val: "short", label: "Direct", sub: "To the point" }
+                    ].map(t => (
+                      <button 
+                        key={t.val}
+                        onClick={() => setTone(t.val as Tone)}
+                        className={`flex-[1_0_calc(50%-4px)] p-2.5 sm:px-4 sm:py-2 border rounded-xl sm:rounded-full text-[13px] font-normal cursor-pointer transition-all text-left sm:text-center ${tone === t.val ? "border-[#C3A370] bg-[#F9F6F0] text-[#C3A370] font-medium" : "border-[#E4E4E7] bg-white text-[#71717A] hover:border-[#A1A1AA] hover:text-[#121212]"}`}
+                      >
+                        {t.label}
+                        <span className="block text-[10px] font-normal opacity-70 mt-0.5">{t.sub}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Focus Area */}
+                <div className="mb-6">
+                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.8px] text-[#71717A] mb-3">Focus Area</span>
+                  <div className="flex flex-col gap-2">
+                    <div 
+                      onClick={() => setFocusArea("overall")}
+                      className={`flex items-center gap-3 px-4 py-3 bg-white rounded-xl border cursor-pointer transition-all ${focusArea === "overall" ? "border-[#C3A370] bg-[#F9F6F0]" : "border-[#E4E4E7] hover:border-[#A1A1AA]"}`}
+                    >
+                      <div className={`w-4 h-4 rounded-full border-[1.5px] flex items-center justify-center transition-all ${focusArea === "overall" ? "border-[#C3A370]" : "border-[#E4E4E7]"}`}>
+                        <div className={`w-2 h-2 rounded-full bg-[#C3A370] transition-transform ${focusArea === "overall" ? "scale-100" : "scale-0"}`}></div>
+                      </div>
+                      <span className={`text-[13px] font-medium flex-1 ${focusArea === "overall" ? "text-[#121212]" : "text-[#2C2C2C]"}`}>Overall Experience</span>
+                    </div>
+
+                    <div 
+                      onClick={() => setFocusArea("detail")}
+                      className={`flex items-center gap-3 px-4 py-3 bg-white rounded-xl border cursor-pointer transition-all ${focusArea === "detail" ? "border-[#C3A370] bg-[#F9F6F0]" : "border-[#E4E4E7] hover:border-[#A1A1AA]"}`}
+                    >
+                      <div className={`w-4 h-4 rounded-full border-[1.5px] flex items-center justify-center transition-all ${focusArea === "detail" ? "border-[#C3A370]" : "border-[#E4E4E7]"}`}>
+                        <div className={`w-2 h-2 rounded-full bg-[#C3A370] transition-transform ${focusArea === "detail" ? "scale-100" : "scale-0"}`}></div>
+                      </div>
+                      <span className={`text-[13px] font-medium flex-1 ${focusArea === "detail" ? "text-[#121212]" : "text-[#2C2C2C]"}`}>Specific Detail</span>
+                    </div>
+                  </div>
+
+                  {focusArea === "detail" && (
+                    <div className="flex items-center gap-2 mt-2 px-3.5 py-1.5 bg-white rounded-xl border border-[#E4E4E7] focus-within:border-[#C3A370] focus-within:shadow-[0_0_0_3px_#F9F6F0] transition-all">
+                      <MessageSquare className="w-4 h-4 text-[#A1A1AA]" />
+                      <input 
+                        type="text" 
+                        placeholder="e.g., The scalp massage..." 
+                        value={detailInput}
+                        onChange={(e) => setDetailInput(e.target.value)}
+                        className="flex-1 border-none bg-transparent py-2 font-sans text-[13px] text-[#121212] focus:outline-none placeholder:text-[#A1A1AA]"
+                      />
+                    </div>
                   )}
-                </AnimatePresence>
+                </div>
               </div>
 
-              {/* Close Button if already rated */}
-              {rating > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="text-xs font-bold text-white/40 hover:text-white/70 underline cursor-pointer"
-                >
-                  Close & View Reviews
-                </button>
-              )}
             </motion.div>
+          )}
+
+          {/* Footer Area */}
+          <div className="mt-8 pt-5 border-t border-[#F4F4F5]">
+            {business?.phoneNumber && (
+              <div className="text-center mb-6 pt-2">
+                <p className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider mb-1.5">Business Contact</p>
+                <a href={`tel:${business.phoneNumber}`} className="text-[15px] font-medium text-[#2C2C2C] hover:text-[#C3A370] transition-colors">
+                  {business.phoneNumber}
+                </a>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold text-[#A1A1AA] tracking-[1px] uppercase">ReviewFlow AI</span>
+                <a href="tel:9334947294" className="flex items-center gap-1.5 text-xs font-medium text-[#71717A] hover:text-[#121212] transition-colors">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  Support
+                </a>
+              </div>
+              <p className="text-[11px] text-[#A1A1AA] leading-relaxed max-w-[90%]">
+                About Us: We empower businesses to collect authentic, high-quality reviews effortlessly through personalized AI experiences.
+              </p>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+
+        </div>
+      </div>
     </div>
   );
 }
