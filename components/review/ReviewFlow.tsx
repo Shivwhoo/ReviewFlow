@@ -280,7 +280,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
             
             {/* Emotive Chips */}
             <div className="flex justify-center gap-2.5 w-full">
-              {["Loved it", "It was okay", "Needs work"].map(chip => (
+              {[""].map(chip => (
                 <button 
                   key={chip}
                   onClick={() => setEmotiveFeedback(chip)}
