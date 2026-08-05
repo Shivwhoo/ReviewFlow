@@ -337,7 +337,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                   </div>
 
                   <span className="text-[9px] font-semibold text-[#A1A1AA] uppercase tracking-[1.5px] mb-4 block">
-                    Rated 5.0 by your community
+                    Rated 5.0 by the community
                   </span>
 
                   <div className="flex justify-center gap-3 mb-8">
