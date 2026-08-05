@@ -20,6 +20,43 @@ interface BusinessData {
 
 type Tone = "casual" | "professional" | "genz" | "short";
 
+const RoundedStar = ({ isFilled, isSmall, onClick, onMouseEnter, onMouseLeave, animateRipple }: any) => {
+  return (
+    <motion.div
+      className="relative flex items-center justify-center"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick}
+    >
+      <svg 
+        viewBox="0 0 24 24" 
+        className={`cursor-pointer transition-all duration-300 transform ${isSmall ? "w-[14px] h-[14px]" : "w-[52px] h-[52px]"} ${!isSmall && !isFilled ? "hover:scale-110" : ""}`}
+        style={{
+          filter: isFilled && !isSmall ? "drop-shadow(0px 4px 12px rgba(245, 166, 35, 0.25))" : "none"
+        }}
+      >
+        <path 
+          d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          strokeWidth={isFilled ? "0" : "1.5"}
+          stroke={isFilled ? "none" : "rgba(209, 213, 219, 0.4)"}
+          fill={isFilled ? "url(#star-gradient)" : "transparent"}
+        />
+      </svg>
+      {animateRipple && !isSmall && (
+        <motion.div 
+          className="absolute inset-0 rounded-full bg-[#F5A623]"
+          initial={{ scale: 0.8, opacity: 0.6 }}
+          animate={{ scale: 1.8, opacity: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          style={{ pointerEvents: "none" }}
+        />
+      )}
+    </motion.div>
+  )
+}
+
 export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -36,6 +73,9 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   
   // Emotive Feedback replacing specific text detail
   const [emotiveFeedback, setEmotiveFeedback] = useState<string>("");
+  
+  // Animation state for star ripples
+  const [animatingStar, setAnimatingStar] = useState<number | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [debouncedTags, setDebouncedTags] = useState<string[]>([]);
@@ -183,6 +223,14 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     setUserEdited(true);
   };
 
+  const handleStarClick = (star: number) => {
+    setAnimatingStar(star);
+    setRating(star);
+    setTimeout(() => {
+      setAnimatingStar(null);
+    }, 500);
+  };
+
   if (businessError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-dvh px-6 text-center bg-[#FDFBF7] font-['Inter']">
@@ -218,9 +266,32 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     return name;
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.2, delayChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }
+  };
+
   return (
     <div className="min-h-dvh flex items-center justify-center bg-[#FDFBF7] p-5 font-sans text-[#1A1A1A] selection:bg-[#D4A574]/20 relative overflow-hidden">
       
+      {/* Global SVG Definitions */}
+      <svg width="0" height="0" className="absolute">
+        <defs>
+          <linearGradient id="star-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#FCEABB" />
+            <stop offset="100%" stopColor="#F8B500" />
+          </linearGradient>
+        </defs>
+      </svg>
+
       {/* Background Soft Mirror Gradients */}
       <div className="absolute top-0 left-0 w-[60vw] h-[60vw] bg-[#F5A623]/5 rounded-full blur-[100px] pointer-events-none -translate-x-1/4 -translate-y-1/4"></div>
       <div className="absolute bottom-0 right-0 w-[50vw] h-[50vw] bg-[#D4A574]/10 rounded-full blur-[100px] pointer-events-none translate-x-1/4 translate-y-1/4"></div>
@@ -236,7 +307,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
         <div className="p-8 sm:p-7 max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-[#E4E4E7]">
           
           {/* Header */}
-          <div className="text-center pb-8 flex flex-col items-center">
+          <div className="text-center pb-2 flex flex-col items-center">
             {business?.logo && (
               <span className="text-[#D4A574] flex items-center mb-4">
                 <img src={business.logo} alt="Logo" className="w-10 h-10 object-contain drop-shadow-sm" />
@@ -248,59 +319,83 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
             
             <div className="w-[40px] h-[1px] bg-[#E4E4E7] mt-5 mb-6"></div>
 
-            <div className="flex items-center justify-center mb-8">
-              <h2 className="font-sans text-[16px] font-normal text-[#6B7280] tracking-[1px]">
-                How was your experience?
-              </h2>
-            </div>
-
-            <span className="text-[9px] font-semibold text-[#A1A1AA] uppercase tracking-[1.5px] mb-4 block">
-              Rated 5.0 by your community
-            </span>
-
-            <div className="flex justify-center gap-3 mb-8">
-              {[1, 2, 3, 4, 5].map((star) => {
-                const isFilled = star <= (hoverRating || rating);
-                return (
-                  <Star 
-                    key={star}
-                    strokeWidth={isFilled ? 2 : 1}
-                    className={`w-[48px] h-[48px] cursor-pointer transition-all duration-300 transform ${
-                      isFilled 
-                        ? "fill-[#D4A574] text-[#D4A574] scale-110 drop-shadow-[0_4px_12px_rgba(212,165,116,0.35)]" 
-                        : "fill-transparent text-[#A1A1AA] hover:scale-110 hover:text-[#D4A574] hover:drop-shadow-[0_4px_12px_rgba(212,165,116,0.35)]"
-                    }`}
-                    onMouseEnter={() => setHoverRating(star)}
-                    onMouseLeave={() => setHoverRating(0)}
-                    onClick={() => setRating(star)}
-                  />
-                )
-              })}
-            </div>
-            
-            {/* Emotive Chips */}
-            <div className="flex justify-center gap-2.5 w-full">
-              {[""].map(chip => (
-                <button 
-                  key={chip}
-                  onClick={() => setEmotiveFeedback(chip)}
-                  className={`px-4 py-2 rounded-full text-[13px] font-medium transition-all border ${
-                    emotiveFeedback === chip 
-                    ? "bg-[#1A1A1A] text-white border-[#1A1A1A] shadow-md shadow-black/5" 
-                    : "bg-[#F3F4F6] text-[#6B7280] border-transparent hover:bg-[#E5E7EB]"
-                  }`}
+            <AnimatePresence mode="popLayout">
+              {rating === 0 ? (
+                <motion.div
+                  key="rating-large"
+                  layoutId="rating-container"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                  className="flex flex-col items-center w-full"
                 >
-                  {chip}
-                </button>
-              ))}
-            </div>
+                  <div className="flex items-center justify-center mb-8">
+                    <h2 className="font-sans text-[16px] font-normal text-[#6B7280] tracking-[1px]">
+                      How was your experience?
+                    </h2>
+                  </div>
+
+                  <span className="text-[9px] font-semibold text-[#A1A1AA] uppercase tracking-[1.5px] mb-4 block">
+                    Rated 5.0 by your community
+                  </span>
+
+                  <div className="flex justify-center gap-3 mb-8">
+                    {[1, 2, 3, 4, 5].map((star) => {
+                      const isFilled = star <= (hoverRating || rating);
+                      return (
+                        <RoundedStar
+                          key={star}
+                          isFilled={isFilled}
+                          isSmall={false}
+                          animateRipple={animatingStar === star}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          onClick={() => handleStarClick(star)}
+                        />
+                      )
+                    })}
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="rating-small"
+                  layoutId="rating-container"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                  className="inline-flex items-center gap-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full px-3 py-1 mb-6"
+                >
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <RoundedStar
+                        key={star}
+                        isFilled={star <= rating}
+                        isSmall={true}
+                        onClick={() => handleStarClick(star)}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[12px] font-bold text-[#1A1A1A]">5.0</span>
+                  <span className="text-[10px] font-medium uppercase text-[#A1A1AA] tracking-wider">
+                    · Community Rated
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
           </div>
 
           {rating > 0 && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pt-2 border-t border-[#F4F4F5]">
+            <motion.div 
+              variants={containerVariants} 
+              initial="hidden" 
+              animate="show" 
+              className="pt-2 border-t border-[#F4F4F5]"
+            >
               
               {/* Language */}
-              <div className="flex bg-[#F3F4F6] p-1 rounded-xl mb-8 mt-6">
+              <motion.div variants={itemVariants} className="flex bg-[#F3F4F6] p-1 rounded-xl mb-8 mt-6">
                 <button
                   onClick={() => setLanguage("en")}
                   className={`flex-1 py-2.5 px-3 border-none rounded-lg text-[13px] font-medium cursor-pointer transition-all text-center ${language === "en" ? "bg-white text-[#1A1A1A] shadow-sm" : "bg-transparent text-[#6B7280] hover:text-[#1A1A1A]"}`}
@@ -315,10 +410,10 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                   Hinglish
                   <span className={`block text-[10px] font-normal mt-0.5 ${language === "hi" ? "text-[#6B7280]" : "text-[#A1A1AA]"}`}>Conversational</span>
                 </button>
-              </div>
+              </motion.div>
 
               {/* Reviews */}
-              <div className="flex items-center justify-between mb-4">
+              <motion.div variants={itemVariants} className="flex items-center justify-between mb-4">
                 <h3 className="font-['Playfair_Display'] font-medium text-lg text-[#1A1A1A]">
                   Curated <span className="text-[#D4A574] italic">Drafts</span>
                 </h3>
@@ -330,9 +425,9 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                   <RefreshCw className={`w-3.5 h-3.5 ${reviewLoading ? "animate-spin" : ""}`} />
                   Refresh
                 </button>
-              </div>
+              </motion.div>
 
-              <div className="flex flex-col gap-4 mb-8">
+              <motion.div variants={itemVariants} className="flex flex-col gap-4 mb-8">
                 {reviewLoading ? (
                   <div className="animate-pulse flex flex-col gap-4">
                     <div className="h-32 bg-[#F9F9F9] rounded-xl border border-[#E4E4E7]"></div>
@@ -382,10 +477,10 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                     </div>
                   );
                 })}
-              </div>
+              </motion.div>
 
               {/* Customize Section */}
-              <div className="pt-6 border-t border-[#E4E4E7]">
+              <motion.div variants={itemVariants} className="pt-6 border-t border-[#E4E4E7]">
                 <div className="flex items-center gap-2 mb-5">
                   <h4 className="font-['Playfair_Display'] font-medium text-base text-[#1A1A1A]">Adjust Parameters</h4>
                 </div>
@@ -430,7 +525,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                     ))}
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
             </motion.div>
           )}
