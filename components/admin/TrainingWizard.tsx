@@ -33,6 +33,7 @@ export default function TrainingWizard({
   // Form State
   const [businessName, setBusinessName] = useState("");
   const [googlePlaceId, setGooglePlaceId] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const [uniqueFeatures, setUniqueFeatures] = useState("");
   const [targetCustomer, setTargetCustomer] = useState("");
@@ -48,6 +49,7 @@ export default function TrainingWizard({
     if (initialBusinessData) {
       setBusinessName(initialBusinessData.name || "");
       setGooglePlaceId(initialBusinessData.googlePlaceId || "");
+      setPhoneNumber(initialBusinessData.phoneNumber || "");
       if (initialBusinessData.onboardingAnswers) {
         setUniqueFeatures(initialBusinessData.onboardingAnswers.uniqueFeatures || "");
         setTargetCustomer(initialBusinessData.onboardingAnswers.targetCustomer || "");
@@ -64,6 +66,7 @@ export default function TrainingWizard({
       const payload = {
         name: businessName,
         googlePlaceId,
+        phoneNumber,
         onboardingAnswers: {
           uniqueFeatures,
           targetCustomer,
@@ -246,6 +249,16 @@ export default function TrainingWizard({
                       }`}
                     />
                     {errors.googlePlaceId && <p className="text-[10px] text-red-400 mt-1">{errors.googlePlaceId}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-white/70 mb-1">Business Contact Number (Optional)</label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. +1 234 567 8900"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-violet-500/40 transition-all"
+                    />
                   </div>
                 </div>
               )}

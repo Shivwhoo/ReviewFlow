@@ -32,6 +32,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [copySuccess, setCopySuccess] = useState<number | null>(null);
   const [userEdited, setUserEdited] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [showPostPopup, setShowPostPopup] = useState(false);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [debouncedTags, setDebouncedTags] = useState<string[]>([]);
@@ -160,11 +161,11 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
       await navigator.clipboard.writeText(text);
       setCopySuccess(index);
       trackEvent("copy", text);
-      showToast("Copied to clipboard");
+      setShowPostPopup(true);
       
       setTimeout(() => {
          window.open(business?.reviewUrl, "_blank", "noopener,noreferrer");
-      }, 1500);
+      }, 3000);
       
       setTimeout(() => {
         setCopySuccess((current) => (current === index ? null : current));
@@ -219,18 +220,16 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
           {/* Header */}
           <div className="text-center pb-6 border-b border-[#F4F4F5] mb-6">
             <div className="font-['Playfair_Display'] font-medium text-2xl text-[#121212] tracking-[-0.01em] flex items-center justify-center gap-2">
-              <span className="text-[#C3A370] flex items-center">
-                 {business?.logo ? (
-                   <img src={business.logo} alt="Logo" className="w-5 h-5 object-contain" />
-                 ) : (
-                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                 )}
-              </span>
+              {business?.logo && (
+                <span className="text-[#C3A370] flex items-center">
+                  <img src={business.logo} alt="Logo" className="w-5 h-5 object-contain" />
+                </span>
+              )}
               {business?.businessName}
             </div>
 
             <div className="flex items-center justify-center gap-3 mt-3">
-              <div className="flex gap-0.5 text-[#E4E4E7] cursor-pointer">
+              <div className="flex gap-0.5 text-[#A1A1AA] cursor-pointer">
                 {[1, 2, 3, 4, 5].map((star) => {
                   const isFilled = star <= (hoverRating || rating);
                   return (
@@ -436,32 +435,61 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
           )}
 
           {/* Footer Area */}
-          <div className="mt-8 pt-5 border-t border-[#F4F4F5]">
-            {business?.phoneNumber && (
-              <div className="text-center mb-6 pt-2">
+          {business?.phoneNumber && (
+            <div className="mt-8 pt-5 border-t border-[#F4F4F5]">
+              <div className="text-center mb-2 pt-2">
                 <p className="text-xs font-semibold text-[#A1A1AA] uppercase tracking-wider mb-1.5">Business Contact</p>
                 <a href={`tel:${business.phoneNumber}`} className="text-[15px] font-medium text-[#2C2C2C] hover:text-[#C3A370] transition-colors">
                   {business.phoneNumber}
                 </a>
               </div>
-            )}
-
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold text-[#A1A1AA] tracking-[1px] uppercase">ReviewFlow AI</span>
-                <a href="tel:9334947294" className="flex items-center gap-1.5 text-xs font-medium text-[#71717A] hover:text-[#121212] transition-colors">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                  Support
-                </a>
-              </div>
-              <p className="text-[11px] text-[#A1A1AA] leading-relaxed max-w-[90%]">
-                About Us: We empower businesses to collect authentic, high-quality reviews effortlessly through personalized AI experiences.
-              </p>
             </div>
-          </div>
+          )}
 
         </div>
-      </div>
+      <AnimatePresence>
+        {showPostPopup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-[20px] shadow-2xl border border-[#E4E4E7] w-full max-w-sm p-6 text-center"
+            >
+              <div className="w-12 h-12 rounded-full bg-[#F9F6F0] flex items-center justify-center mx-auto mb-4 text-[#C3A370]">
+                <Check className="w-6 h-6" />
+              </div>
+              <h3 className="font-['Playfair_Display'] text-xl font-medium text-[#121212] mb-2">Review Copied!</h3>
+              <p className="text-sm text-[#71717A] mb-6">
+                Redirecting you to Google automatically to paste your review.
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                <a
+                  href={business?.reviewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setShowPostPopup(false)}
+                  className="bg-[#121212] text-white py-3 rounded-full text-sm font-medium hover:bg-[#2C2C2C] transition-colors"
+                >
+                  Post Manually
+                </a>
+                <button
+                  onClick={() => setShowPostPopup(false)}
+                  className="text-sm text-[#71717A] hover:text-[#121212] font-medium transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -81,6 +81,7 @@ export async function PUT(
         business.reviewUrl = buildGoogleReviewUrl(body.googlePlaceId);
       }
       if (body.defaultLanguage !== undefined) business.defaultLanguage = body.defaultLanguage;
+      if (body.phoneNumber !== undefined) business.phoneNumber = body.phoneNumber;
     }
 
     if (body.onboardingAnswers) {
