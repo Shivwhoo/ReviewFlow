@@ -4,6 +4,8 @@ import dbConnect from "@/lib/db/mongoose";
 import Business from "@/lib/db/models/Business";
 import { buildGoogleReviewUrl } from "@/lib/utils/googleLink";
 import { compileAiContextPrompt } from "@/lib/utils/aiContext";
+import QRCode from "@/lib/db/models/QRCode";
+import redis from "@/lib/redis/client";
 
 export async function GET() {
   try {
@@ -83,6 +85,15 @@ export async function PUT(request: NextRequest) {
     }
 
     await business.save();
+
+    // Invalidate Redis cache for all QR codes assigned to this business
+    const qrcodes = await QRCode.find({ assignedToBusinessId: business._id }).lean();
+    if (qrcodes.length > 0) {
+      const keysToDelete = qrcodes.map(qr => `qr:${qr.qrId}`);
+      // Upstash redis supports variadic arguments for del
+      await redis.del(...keysToDelete);
+    }
+
     return NextResponse.json(business);
   } catch (error) {
     console.error("[PUT /api/business/settings]", error);
