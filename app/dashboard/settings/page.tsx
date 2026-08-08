@@ -14,6 +14,7 @@ export default function SettingsPage() {
   const [form, setForm] = useState({
     name: "",
     googlePlaceId: "",
+    phoneNumber: "",
     defaultLanguage: "en" as "en" | "hi",
     onboardingAnswers: {
       uniqueFeatures: "",
@@ -36,6 +37,7 @@ export default function SettingsPage() {
         setForm({
           name: data.name || "",
           googlePlaceId: data.googlePlaceId || "",
+          phoneNumber: data.phoneNumber || "",
           defaultLanguage: data.defaultLanguage || "en",
           onboardingAnswers: {
             uniqueFeatures: data.onboardingAnswers?.uniqueFeatures || "",
@@ -139,6 +141,16 @@ export default function SettingsPage() {
                     type="text"
                     value={form.googlePlaceId}
                     onChange={(e) => setForm({ ...form, googlePlaceId: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-white/50 mb-1">Phone Number</label>
+                  <input
+                    type="text"
+                    placeholder="+1 (555) 000-0000"
+                    value={form.phoneNumber}
+                    onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
                   />
                 </div>

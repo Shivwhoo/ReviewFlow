@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Copy, RefreshCw, Star, Info, MessageSquare } from "lucide-react";
+import { Check, Copy, RefreshCw, Star, Info, MessageSquare, Phone } from "lucide-react";
 
 interface BusinessData {
   businessId: string;
@@ -532,7 +532,17 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
 
           {/* Footer Area */}
           <div className="mt-8 pt-6 border-t border-[#F4F4F5]">
-
+            {business?.phoneNumber && (
+              <div className="flex justify-center mb-6 pb-6 border-b border-[#F4F4F5]">
+                <a 
+                  href={`tel:${business.phoneNumber}`} 
+                  className="flex items-center gap-2 px-4 py-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full text-[13px] font-medium text-[#4B5563] hover:text-[#1A1A1A] hover:border-[#D4A574] hover:bg-[#FDFBF7] transition-all shadow-sm group"
+                >
+                  <Phone className="w-3.5 h-3.5 text-[#D4A574] group-hover:scale-110 transition-transform" />
+                  {business.phoneNumber}
+                </a>
+              </div>
+            )}
 
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-0.5">
