@@ -532,14 +532,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
 
           {/* Footer Area */}
           <div className="mt-8 pt-6 border-t border-[#F4F4F5]">
-            {business?.phoneNumber && (
-              <div className="text-center mb-6 pb-4 border-b border-[#F4F4F5]">
-                <p className="text-[10px] font-semibold text-[#A1A1AA] uppercase tracking-wider mb-1.5">Business Contact</p>
-                <a href={`tel:${business.phoneNumber}`} className="text-[14px] font-medium text-[#2C2C2C] hover:text-[#D4A574] transition-colors">
-                  {business.phoneNumber}
-                </a>
-              </div>
-            )}
+
 
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-0.5">
