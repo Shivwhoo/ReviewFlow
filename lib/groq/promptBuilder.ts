@@ -38,31 +38,17 @@ Rating 4, tags Food+Price, tone Professional: "Khana achha tha aur prices reason
 
 Rating 2, tags Service, tone Short: "Service bohot slow thi. Order mein galti thi. Disappointing."`;
 
-const SYSTEM_MESSAGE = `Role: Review Generator. Task: Write extremely natural, human Google reviews.
-CRITICAL RULES:
-1. Flow: Write like talking to a friend. Use contractions (didn't, wasn't, it's). Start sometimes with (Oh, Honestly, So, Well, You know). Use ellipses (...) naturally. Use fragments ("Super fast service").
-2. Length:
-{length_balance_rules}
-- Min: 8 words.
-3. No Spam/Robotic: Avoid ("overall experience", "highly recommend", "amazing food, service"). Prefer ("Food was good – staff friendly.", "Yeah, I'd come again. No complaints.").
-4. Tags: Integrate tags naturally in a story, never as a list.
-5. Ratings:
-- 5★: Enthusiastic. Max 1 "!".
-- 4★: Positive with polite caveat ("Nice, though a bit slow.").
-- 3★: Mixed ("Decent food but slow service.").
-- 2★: Mixed/civil ("Room dusty, but staff was at least friendly.").
-- 1★: Direct, civil, constructive ("Avoid. Wrong order, though parking was easy.").
-6. Gen-Z: Slang (slaps, hits different, vibe, fr). Emojis: 1-2 max (😭🔥✨💯).
-7. Professional: Polite, conversational, no slang or corporate letters ("Impressed", "Would recommend").
-8. Hinglish Transliteration (CRITICAL): Write ONLY in English/Latin letters. NEVER use Devanagari script (Hindi characters). Transliterate like WhatsApp chat ("Arre, bahut achha tha", "Khana badhiya tha").`;
+const SYSTEM_MESSAGE = `Role: Google Review Generator.
+RULES:
+1. Write VERY SHORT, punchy, human-like Google reviews. NO long paragraphs!
+2. {length_balance_rules}
+3. Conversational flow, contractions, fragments. No robotic/formal essays.
+4. Tone: Gen-Z (slang/emojis), Pro (polite but brief), Casual (like texting).
+5. Hinglish: Latin letters ONLY (e.g. "Khana achha tha"), NO Devanagari.`;
 
-const PROMPT_EXAMPLES = `EXAMPLES:
-1. En-Casual (5⭐, Cafe, tags: Coffee, Staff): "Oh, the coffee here is actually really good. Smooth. And the girl at the counter was super sweet – answered all my dumb questions. Definitely my new spot."
-2. En-Short (5⭐, Auto repair, tags: Speed, Price): "Fast, fair price, car runs great. What more do you need?"
-3. En-Professional (4⭐, Hospital, tags: Doctor, Wait): "The doctor explained everything clearly, which I appreciated. Wait was about 15 min. Only small issue was front desk could be friendlier."
-4. Hinglish-Casual (5⭐, Salon, tags: Haircut, Clean): "Arre, haircut bahut achha kiya stylist ne. Aur salon bilkul clean tha. Honestly, main 2 weeks baad bhi wapas aa raha hoon."
-5. GenZ (5⭐, Restaurant, tags: Food, Vibe): "The vibe here is immaculate fr 😭🔥 Pasta slaps so hard. Definitely my new comfort place."
-6. Low rating (2⭐, Hotel, tags: Clean, Staff): "Honestly? Room was not clean – like, dust everywhere. But the staff was at least friendly. Won't stay again."`;
+const PROMPT_EXAMPLES = `Ex:
+- 5⭐ Casual: "Oh, coffee is really good. Girl at the counter was super sweet. Def my new spot."
+- Hinglish: "Haircut bahut achha kiya. Main zaroor wapas aaunga."`;
 
 /**
  * Minify prompt string by stripping indentation and blank lines to reduce token usage.
@@ -86,39 +72,27 @@ export function buildPrompt(input: PromptInput): {
 
   const isShorter = length === "shorter";
   const lengthRule = isShorter
-    ? `- Casual / Professional / Gen-Z: 15–25 words (max 30).
-- Short & crisp: 8–15 words (max 18).
-- Output brief, single-sentence reviews.`
-    : `- Casual / Professional / Gen-Z: 35–55 words (max 60).
-- Short & crisp: 15–25 words (max 30).
-- Write descriptive, context-rich sentences.`;
+    ? `CRITICAL: Maximum 15 words. 1-2 sentences only. Ultra-short.`
+    : `CRITICAL: Maximum 30 words. 2-3 sentences only. Keep it punchy.`;
 
   const langLabel = language === "hi" ? "Hinglish (transliterated Hindi WhatsApp style)" : "English";
   const toneDescription = TONE_DESCRIPTIONS[tone];
   const tagList = tags.length > 0 ? tags.join(", ") : "overall experience";
 
   let system = `${SYSTEM_MESSAGE.replace("{length_balance_rules}", lengthRule)}\n`;
-  system += `--- EXAMPLES ---\n${PROMPT_EXAMPLES}\n`;
-  system += `--- GENERATION INSTRUCTIONS ---\n`;
-  system += `1. Write exactly 2 distinct reviews in ${langLabel} and ${toneDescription}.\n`;
-  system += `2. Vary phrasing between Option 1 and Option 2.\n`;
+  system += `${PROMPT_EXAMPLES}\n`;
+  system += `Output exactly 2 distinct reviews in ${langLabel} and ${toneDescription}.\n`;
   
   if (aiContextPrompt && aiContextPrompt.trim()) {
-    system += `3. CONTEXT: reviews for "${businessName}". Tailor reviews using context: "${aiContextPrompt}"\n`;
+    system += `Context: "${aiContextPrompt}"\n`;
   }
   
   if (userNotes && userNotes.trim()) {
-    system += `4. NOTES: Customers want to mention: "${userNotes}". Weave this in both options.\n`;
+    system += `Include: "${userNotes}"\n`;
   }
   
-  system += `5. RESPONSE FORMAT: Return ONLY a valid JSON object matching:
-{
-  "reviews": [
-    "first review option",
-    "second review option"
-  ]
-}
-Do not use markdown wrappers, backticks, or "json" prefixes. Return raw JSON only.`;
+  system += `OUTPUT RAW JSON ONLY (NO markdown, NO formatting):
+{"reviews":["option 1","option 2"]}`;
 
   let user = `Generate 2 reviews for ${businessName}. Rating: ${rating}/5. Focus: ${tagList}. Tone: ${toneDescription}. Language: ${langLabel}.`;
   

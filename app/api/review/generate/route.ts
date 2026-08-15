@@ -4,7 +4,7 @@ import redis from "@/lib/redis/client";
 import dbConnect from "@/lib/db/mongoose";
 import Business from "@/lib/db/models/Business";
 import User, { CREDIT_LIMITS } from "@/lib/db/models/User";
-import groq from "@/lib/groq/client";
+import { groqRotator } from "@/lib/groq/client";
 import { buildPrompt, getFallbackReviews } from "@/lib/groq/promptBuilder";
 import { buildCacheKey } from "@/lib/utils/cacheKey";
 import { hashIp } from "@/lib/utils/hashIp";
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
     let reviews: string[] = [];
     let isFallback = false;
 
-    if (groq) {
+    if (groqRotator.isConfigured) {
       try {
         const prompt = buildPrompt({
           businessName: business.name,
@@ -150,20 +150,22 @@ export async function POST(request: NextRequest) {
           length,
         });
 
-        const completion = await groq.chat.completions.create({
-          model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
+        const completion = await groqRotator.generateChatCompletion({
+          model: process.env.GROQ_MODEL || "openai/gpt-oss-20b",
           messages: [
             { role: "system", content: prompt.system },
             { role: "user", content: prompt.user },
           ],
-          response_format: { type: "json_object" },
           temperature: 0.8,
-          max_tokens: 300,
+          max_tokens: 2000,
         });
 
         const content = completion.choices[0]?.message?.content?.trim();
+        console.log("[GROQ COMPLETION DETAILS]:", JSON.stringify(completion, null, 2));
+        console.log("[GROQ OUTPUT]:", content);
         if (content) {
-          const parsedJson = JSON.parse(content);
+          const cleanedContent = content.replace(/^```(json)?\n?|\n?```$/gi, '').trim();
+          const parsedJson = JSON.parse(cleanedContent);
           if (parsedJson && Array.isArray(parsedJson.reviews) && parsedJson.reviews.length >= 2) {
             reviews = parsedJson.reviews.slice(0, 2);
           }
