@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Copy, RefreshCw, Star, Info, MessageSquare, Phone } from "lucide-react";
+import { Check, Copy, RefreshCw, Star, Info, MessageSquare, Phone, ChevronDown } from "lucide-react";
 
 interface BusinessData {
   businessId: string;
@@ -70,6 +70,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [userEdited, setUserEdited] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [showPostPopup, setShowPostPopup] = useState(false);
+  const [isTagsOpen, setIsTagsOpen] = useState(false);
   
   // Emotive Feedback replacing specific text detail
   const [emotiveFeedback, setEmotiveFeedback] = useState<string>("");
@@ -229,6 +230,10 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     setTimeout(() => {
       setAnimatingStar(null);
     }, 500);
+  };
+
+  const toggleTag = (tagName: string) => {
+    setTags(prev => prev.includes(tagName) ? prev.filter(t => t !== tagName) : [...prev, tagName]);
   };
 
   if (businessError) {
@@ -484,6 +489,52 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                 <div className="flex items-center gap-2 mb-5">
                   <h4 className="font-['Playfair_Display'] font-medium text-base text-[#1A1A1A]">Adjust Parameters</h4>
                 </div>
+
+                {/* Custom Tags */}
+                {business?.customTags && business.customTags.filter(t => t.isActive !== false).length > 0 && (
+                  <div className="mb-6">
+                    <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.8px] text-[#6B7280] mb-3">Highlights</span>
+                    <div className="relative">
+                      <button 
+                        onClick={() => setIsTagsOpen(!isTagsOpen)}
+                        className="w-full flex items-center justify-between px-4 py-3 border border-[#E4E4E7] rounded-xl bg-white text-[13px] text-[#1A1A1A] cursor-pointer transition-all hover:border-[#A1A1AA]"
+                      >
+                        <span className="truncate">
+                          {tags.length > 0 ? tags.join(", ") : "Select highlights..."}
+                        </span>
+                        <ChevronDown className={`w-4 h-4 text-[#6B7280] transition-transform ${isTagsOpen ? "rotate-180" : ""}`} />
+                      </button>
+                      
+                      <AnimatePresence>
+                        {isTagsOpen && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -5 }}
+                            className="absolute z-20 top-full left-0 right-0 mt-2 bg-white border border-[#E4E4E7] rounded-xl shadow-lg shadow-black/5 overflow-hidden max-h-[200px] overflow-y-auto"
+                          >
+                            {business.customTags.filter(t => t.isActive !== false).map((tag) => {
+                              const isSelected = tags.includes(tag.name);
+                              return (
+                                <button
+                                  key={tag.name}
+                                  onClick={() => toggleTag(tag.name)}
+                                  className={`w-full flex items-center justify-between px-4 py-2.5 text-left text-[13px] hover:bg-[#F9FAFB] transition-colors border-b border-[#F4F4F5] last:border-0 ${isSelected ? "text-[#D4A574] font-medium bg-[#FDFBF7]" : "text-[#4B5563]"}`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    {tag.emoji && <span>{tag.emoji}</span>}
+                                    <span>{tag.name}</span>
+                                  </div>
+                                  {isSelected && <Check className="w-4 h-4" />}
+                                </button>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                )}
 
                 {/* Length */}
                 <div className="mb-6">
