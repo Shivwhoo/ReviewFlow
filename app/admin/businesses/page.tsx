@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, Ban, RefreshCw, Sparkles, QrCode, Link2, ExternalLink } from "lucide-react";
+import { Building2, Ban, RefreshCw, Sparkles, QrCode, Link2, ExternalLink, Tag } from "lucide-react";
 import TrainingWizard from "@/components/admin/TrainingWizard";
 import QRManageModal from "@/components/admin/QRManageModal";
+import AdminTagsModal from "@/components/admin/AdminTagsModal";
 
 export default function AdminBusinessesPage() {
   const queryClient = useQueryClient();
   const [trainingUserId, setTrainingUserId] = useState<string | null>(null);
   const [activeQRManageBiz, setActiveQRManageBiz] = useState<any | null>(null);
+  const [activeTagsBiz, setActiveTagsBiz] = useState<any | null>(null);
 
   const { data: businesses, isLoading } = useQuery({
     queryKey: ["admin-businesses"],
@@ -205,6 +207,13 @@ export default function AdminBusinessesPage() {
                         </button>
                       )}
                       <button
+                        onClick={() => setActiveTagsBiz(biz)}
+                        className="p-1.5 rounded-lg text-white/30 hover:text-fuchsia-400 hover:bg-fuchsia-500/10 transition-all cursor-pointer"
+                        title="Manage Custom Tags"
+                      >
+                        <Tag className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => resetCreditsMutation.mutate(biz._id)}
                         disabled={resetCreditsMutation.isPending}
                         className="p-1.5 rounded-lg text-white/30 hover:text-violet-400 hover:bg-violet-500/10 transition-all cursor-pointer"
@@ -359,6 +368,13 @@ export default function AdminBusinessesPage() {
                     </button>
                   )}
                   <button
+                    onClick={() => setActiveTagsBiz(biz)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10 text-xs font-semibold text-white/70 hover:text-fuchsia-400 hover:border-fuchsia-500/30 hover:bg-fuchsia-500/5 transition-all cursor-pointer"
+                  >
+                    <Tag className="w-3.5 h-3.5" />
+                    Custom Tags
+                  </button>
+                  <button
                     onClick={() => resetCreditsMutation.mutate(biz._id)}
                     disabled={resetCreditsMutation.isPending}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/10 text-xs font-semibold text-white/70 hover:text-violet-400 hover:border-violet-500/30 hover:bg-violet-500/5 transition-all cursor-pointer"
@@ -402,6 +418,14 @@ export default function AdminBusinessesPage() {
             businessName={activeQRManageBiz.businessName}
             currentlyLinkedQRs={activeQRManageBiz.qrCodes || []}
             onClose={() => setActiveQRManageBiz(null)}
+          />
+        )}
+        {activeTagsBiz && (
+          <AdminTagsModal
+            userId={activeTagsBiz._id}
+            businessName={activeTagsBiz.businessName || "Business"}
+            initialTags={activeTagsBiz.customTags || []}
+            onClose={() => setActiveTagsBiz(null)}
           />
         )}
       </AnimatePresence>

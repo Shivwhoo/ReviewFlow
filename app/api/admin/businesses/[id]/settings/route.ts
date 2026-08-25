@@ -89,6 +89,10 @@ export async function PUT(
       business.aiContextPrompt = compileAiContextPrompt(body.onboardingAnswers);
     }
 
+    if (body.customTags !== undefined) {
+      business.customTags = body.customTags;
+    }
+
     if (typeof body.onboardingCompleted === "boolean") {
       business.onboardingCompleted = body.onboardingCompleted;
     }
