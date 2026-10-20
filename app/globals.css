@@ -131,10 +131,10 @@
 
 /* ---- Brand Theme (Print-Inspired Neo-Brutalist Palette) ---- */
 .reviewflow-theme {
-  --paper: #FFE4D2;
-  --paper-card: #FFF3EA;
-  --paper-alt: #FFD0B3;
-  --ink: #2B0E14;
+  --paper: #FBF6EC;
+  --paper-card: #FFFFFF;
+  --paper-alt: #F3EBDD;
+  --ink: #17120E;
   --crimson: #B0102F;
   --lime: #C8F04D;
   min-height: 100dvh;
@@ -166,13 +166,13 @@
 }
 
 .reviewflow-theme :where(h1, h2) {
-  color: var(--ink);
+  color: inherit;
   font-weight: 800;
   letter-spacing: -0.03em;
 }
 
 .reviewflow-theme :where(h3) {
-  color: var(--ink);
+  color: inherit;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
@@ -242,22 +242,14 @@
 /* ---- Navbar ---- */
 .reviewflow-theme .landing-nav {
   height: 68px;
-  background: var(--paper);
-  border-bottom: 2px solid var(--ink);
 }
 
 .reviewflow-theme .landing-nav-link {
-  color: var(--ink);
+  color: inherit;
   font-family: 'Instrument Sans', sans-serif;
   font-weight: 500;
   text-decoration: none;
-  padding: 8px 0;
   transition: opacity 120ms ease;
-}
-
-.reviewflow-theme .landing-nav-link:hover {
-  text-decoration: underline;
-  text-underline-offset: 4px;
 }
 
 .reviewflow-theme .landing-nav-cta {

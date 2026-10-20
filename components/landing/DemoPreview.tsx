@@ -336,7 +336,7 @@ export default function DemoPreview() {
             </span>
             Interactive live sandbox
           </p>
-          <h2 className="mt-5 font-headline text-4xl font-extrabold leading-[1.02] tracking-[-0.03em] sm:text-5xl lg:text-6xl">
+          <h2 className="mt-5 font-headline text-4xl font-extrabold leading-[1.02] tracking-[-0.03em] text-[#FBF6EC] sm:text-5xl lg:text-6xl">
             Play with it.{" "}
             <span className="italic text-[#FF8A1F]">Right here.</span>
           </h2>
@@ -513,7 +513,7 @@ export default function DemoPreview() {
                     <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#FF8A1F] font-headline text-xl font-extrabold">
                       B
                     </div>
-                    <h3 className="mt-3 font-headline text-2xl font-extrabold tracking-[-0.02em]">BP PALACE</h3>
+                    <h3 className="mt-3 font-headline text-2xl font-extrabold tracking-[-0.02em] text-[#17120E]">BP PALACE</h3>
                     <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 ring-1 ring-[#17120E]/10">
                       <span className="flex gap-0.5">
                         {[1, 2, 3, 4, 5].map((s) => (
@@ -543,7 +543,7 @@ export default function DemoPreview() {
 
                   {/* drafts header */}
                   <div className="mb-3 mt-5 flex items-center justify-between">
-                    <h4 className="font-headline text-base font-extrabold">
+                    <h4 className="font-headline text-base font-extrabold text-[#17120E]">
                       Curated <span className="italic text-[#0B6E4F]">drafts</span>
                     </h4>
                     <button

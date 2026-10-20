@@ -157,7 +157,7 @@ export default function Hero() {
               AI-powered Google reviews
             </p>
 
-            <h1 className="mt-6 font-headline text-[44px] font-extrabold leading-[0.98] tracking-[-0.035em] sm:text-6xl lg:text-[84px]">
+            <h1 className="mt-6 font-headline text-[44px] font-extrabold leading-[0.98] tracking-[-0.035em] text-[#17120E] sm:text-6xl lg:text-[84px]">
               Happy customers,{" "}
               <span className="relative inline-block whitespace-nowrap">
                 <span className="relative z-10 italic text-[#0B6E4F]">five stars</span>
@@ -245,7 +245,7 @@ export default function Hero() {
                     <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#FF8A1F] font-headline text-xl font-extrabold">
                       B
                     </div>
-                    <h2 className="mt-3 font-headline text-xl font-extrabold tracking-[-0.02em]">
+                    <h2 className="mt-3 font-headline text-xl font-extrabold tracking-[-0.02em] text-[#17120E]">
                       Your Business Name
                     </h2>
                     <div className="mt-1.5 flex items-center justify-center gap-2">
@@ -349,8 +349,8 @@ export default function Hero() {
           {STEPS.map((s) => (
             <div key={s.n} className="bg-[#17120E] px-5 py-8 sm:px-8 sm:py-12">
               <span className="font-number text-sm font-bold text-[#FF8A1F]">{s.n}</span>
-              <h3 className="mt-2 font-headline text-2xl font-extrabold tracking-[-0.02em]">{s.t}</h3>
-              <p className="mt-2 max-w-[300px] font-body text-sm leading-relaxed text-[#FBF6EC]/65">{s.d}</p>
+              <h3 className="mt-2 font-headline text-2xl font-extrabold tracking-[-0.02em] text-[#FBF6EC]">{s.t}</h3>
+              <p className="mt-2 max-w-[300px] font-body text-sm leading-relaxed text-[#FBF6EC]/75">{s.d}</p>
             </div>
           ))}
         </div>

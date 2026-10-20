@@ -13,7 +13,7 @@ export default function PricingPage() {
     <div className="reviewflow-theme min-h-dvh flex flex-col justify-between">
       <div>
         {/* Navigation */}
-        <nav className="landing-nav fixed top-0 left-0 right-0 z-50">
+        <nav className="landing-nav fixed top-0 left-0 right-0 z-50 border-b border-[#17120E]/10 bg-[#FBF6EC]/85 backdrop-blur-xl">
           <div className="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 h-[68px]">
             <Link href="/" className="flex items-center gap-2.5">
               <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-[#B0102F] border-2 border-[#2B0E14] shadow-[2px_2px_0_#2B0E14]">

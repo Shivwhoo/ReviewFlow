@@ -6,7 +6,7 @@ const STEPS = [
   {
     number: "1",
     icon: QrCode,
-    title: "Customer Scans QRcxcxccx",
+    title: "Customer Scans QR Code",
     description:
       "Placed on tables, receipts, or reception counters. Customers scan with any camera — zero apps or logins required.",
     badgeStyle: "landing-step-badge-crimson",
