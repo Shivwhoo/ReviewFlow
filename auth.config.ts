@@ -6,13 +6,17 @@ export const authConfig = {
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
+  secret: process.env.AUTH_SECRET,
+  trustHost: true,
   session: {
     strategy: "jwt",
   },
   pages: {
     signIn: "/signin",
+    error: "/signin",
   },
   callbacks: {
     // Edge-compatible jwt & session handlers
@@ -26,7 +30,7 @@ export const authConfig = {
     },
     async session({ session, token }) {
       if (session.user && token) {
-        session.user.id = token.userId as string;
+        session.user.id = (token.userId as string) || (token.sub as string);
         session.user.role = (token.role as any) || "business";
         session.user.subscriptionTier = (token.subscriptionTier as any) || "free";
       }

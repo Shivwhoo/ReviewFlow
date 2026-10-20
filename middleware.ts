@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import NextAuth from "next-auth";
 import { authConfig } from "./auth.config";
 
 const { auth } = NextAuth(authConfig);
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export default auth((req) => {
+  const { pathname } = req.nextUrl;
+  const session = req.auth;
 
   // Protect dashboard routes
   if (pathname.startsWith("/dashboard")) {
-    const session = await auth();
     if (!session?.user) {
-      const signInUrl = new URL("/signin", request.url);
+      const signInUrl = new URL("/signin", req.url);
       signInUrl.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(signInUrl);
     }
@@ -20,20 +19,26 @@ export async function middleware(request: NextRequest) {
 
   // Protect admin routes
   if (pathname.startsWith("/admin")) {
-    const session = await auth();
     if (!session?.user) {
-      const signInUrl = new URL("/signin", request.url);
+      const signInUrl = new URL("/signin", req.url);
       signInUrl.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(signInUrl);
     }
     if (session.user.role !== "admin") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+  }
+
+  // If already logged in and visiting /signin, redirect to /dashboard
+  if (pathname === "/signin") {
+    if (session?.user) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*"],
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/signin"],
 };

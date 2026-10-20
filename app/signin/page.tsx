@@ -1,10 +1,73 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { AlertCircle, RefreshCw, Loader2 } from "lucide-react";
 
-export default function SignInPage() {
+function SignInContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const error = searchParams.get("error");
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
+  // If already authenticated and no error, redirect directly to callbackUrl
+  useEffect(() => {
+    if (status === "authenticated" && !error) {
+      router.replace(callbackUrl);
+    }
+  }, [status, error, callbackUrl, router]);
+
+  const handleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      // If there was an error in query params, clean any stale session first
+      if (error) {
+        await signOut({ redirect: false }).catch(() => {});
+      }
+      await signIn("google", { callbackUrl });
+    } catch (err) {
+      console.error("Sign in error:", err);
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetAndSignIn = async () => {
+    try {
+      setIsLoading(true);
+      await signOut({ redirect: false }).catch(() => {});
+      // Clear URL error param
+      router.replace("/signin");
+      await signIn("google", { callbackUrl });
+    } catch (err) {
+      console.error("Reset and sign in error:", err);
+      setIsLoading(false);
+    }
+  };
+
+  const getErrorMessage = (errCode: string | null) => {
+    if (!errCode) return null;
+    switch (errCode) {
+      case "OAuthAccountNotLinked":
+        return "An account with this email already exists or a previous session conflicted. Click 'Clear & Try Again' below to log in cleanly.";
+      case "OAuthCallbackError":
+        return "Google sign-in was interrupted or encountered an issue. Please try again.";
+      case "Callback":
+        return "Authentication callback failed. Please try signing in again.";
+      case "AccessDenied":
+        return "Access denied. Please ensure you have permission to access ReviewFlow.";
+      default:
+        return "Sign in failed. Your previous session may have expired. Please retry below.";
+    }
+  };
+
+  const errorMessage = getErrorMessage(error);
+
   return (
     <div className="reviewflow-theme min-h-dvh flex items-center justify-center px-4 py-12">
       <motion.div
@@ -37,30 +100,59 @@ export default function SignInPage() {
 
         {/* Sign in card */}
         <div className="bg-[#FFF3EA] border-2 border-[#2B0E14] rounded-3xl p-7 sm:p-9 shadow-[8px_8px_0_#2B0E14] space-y-6">
+          {/* Error Banner */}
+          {errorMessage && (
+            <div className="p-4 rounded-2xl bg-red-100/80 border-2 border-red-800/40 text-red-900 text-sm flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 flex-none text-red-700 mt-0.5" />
+              <div className="flex-1 space-y-2">
+                <p className="leading-snug font-medium">{errorMessage}</p>
+                <button
+                  type="button"
+                  onClick={handleResetAndSignIn}
+                  disabled={isLoading}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold underline hover:text-red-950 transition-colors"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Clear stale session & retry
+                </button>
+              </div>
+            </div>
+          )}
+
           <button
-            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            onClick={handleSignIn}
+            disabled={isLoading || status === "loading"}
             className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-full
-              bg-white text-[#2B0E14] border-2 border-[#2B0E14] font-button text-base font-semibold shadow-[3px_3px_0_#2B0E14] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_#2B0E14] transition-all"
+              bg-white text-[#2B0E14] border-2 border-[#2B0E14] font-button text-base font-semibold shadow-[3px_3px_0_#2B0E14] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_#2B0E14] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <svg className="w-5 h-5 flex-none" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
-            </svg>
-            Continue with Google
+            {isLoading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Signing in with Google...
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5 flex-none" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  />
+                </svg>
+                Continue with Google
+              </>
+            )}
           </button>
 
           <p className="font-body text-xs text-center text-[#2B0E14]/60 leading-relaxed">
@@ -87,3 +179,18 @@ export default function SignInPage() {
     </div>
   );
 }
+
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="reviewflow-theme min-h-dvh flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full border-2 border-[#2B0E14] border-t-transparent animate-spin" />
+        </div>
+      }
+    >
+      <SignInContent />
+    </Suspense>
+  );
+}
+

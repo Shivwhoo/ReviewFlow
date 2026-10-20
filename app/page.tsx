@@ -4,6 +4,7 @@ import DemoPreview from "@/components/landing/DemoPreview";
 import Pricing from "@/components/landing/Pricing";
 import FAQ from "@/components/landing/FAQ";
 import Link from "next/link";
+import { auth } from "@/auth";
 
 const NAV_LINKS = [
   { href: "#how-it-works", label: "How it works" },
@@ -30,7 +31,9 @@ function LogoMark({ size = 32, dark = false }: { size?: number; dark?: boolean }
   );
 }
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await auth();
+
   return (
     <div className="reviewflow-theme min-h-dvh w-full overflow-x-hidden bg-[#FBF6EC]">
       {/* Navigation */}
@@ -56,18 +59,32 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/signin"
-              className="hidden rounded-full px-4 py-2 font-nav-link text-[15px] font-semibold text-[#17120E] transition-colors hover:bg-[#17120E]/8 sm:inline-block"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/signin"
-              className="rounded-full bg-[#17120E] px-4 py-2 font-button text-sm font-semibold text-[#FBF6EC] shadow-[0_8px_20px_-8px_#17120E99] transition hover:bg-[#0B6E4F] sm:px-6 sm:text-base"
-            >
-              Get started
-            </Link>
+            {session?.user ? (
+              <Link
+                href="/dashboard"
+                className="rounded-full bg-[#17120E] px-5 py-2 font-button text-sm font-semibold text-[#FBF6EC] shadow-[0_8px_20px_-8px_#17120E99] transition hover:bg-[#0B6E4F] sm:px-6 sm:text-base flex items-center gap-2"
+              >
+                <span>Dashboard</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-white/20">
+                  {session.user.name?.split(" ")[0] || "Account"}
+                </span>
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/signin"
+                  className="hidden rounded-full px-4 py-2 font-nav-link text-[15px] font-semibold text-[#17120E] transition-colors hover:bg-[#17120E]/8 sm:inline-block"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/signin"
+                  className="rounded-full bg-[#17120E] px-4 py-2 font-button text-sm font-semibold text-[#FBF6EC] shadow-[0_8px_20px_-8px_#17120E99] transition hover:bg-[#0B6E4F] sm:px-6 sm:text-base"
+                >
+                  Get started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>

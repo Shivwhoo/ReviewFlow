@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, Check, Copy, ScanLine, Send, Sparkles, Star } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 type Lang = "en" | "hi";
 type Tag = "Food" | "Service" | "Ambience";
@@ -105,6 +106,7 @@ function Stars({ className = "h-4 w-4" }: { className?: string }) {
 }
 
 export default function Hero() {
+  const { data: session } = useSession();
   const [copied, setCopied] = useState<number | null>(null);
   const [lang, setLang] = useState<Lang>("en");
   const [tag, setTag] = useState<Tag | null>("Food");
@@ -178,10 +180,10 @@ export default function Hero() {
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
               <Link
-                href="/signin"
+                href={session?.user ? "/dashboard" : "/signin"}
                 className="group inline-flex min-h-[54px] w-full items-center justify-center gap-2 rounded-full bg-[#17120E] px-8 font-body text-base font-semibold text-[#FBF6EC] shadow-[0_10px_30px_-10px_#17120E99] transition hover:-translate-y-0.5 hover:bg-[#0B6E4F] sm:w-auto sm:text-lg"
               >
-                Get started free
+                {session?.user ? "Go to dashboard" : "Get started free"}
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
               <a
