@@ -44,7 +44,7 @@ export default function DashboardSidebar() {
         {/* Logo */}
         <Link href="/dashboard" className="flex items-center gap-2 mb-8 px-2">
           <img src="/logo.png" alt="ReviewFlow Logo" className="w-8 h-8 object-contain" />
-          <span className="font-bold text-white">ReviewFlow</span>
+          <span className="font-wordmark text-xl font-extrabold tracking-tight text-white">ReviewFlow</span>
         </Link>
 
         {/* Nav items */}
@@ -124,7 +124,7 @@ export default function DashboardSidebar() {
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-surface-100/95 backdrop-blur-lg border-b border-white/5 flex items-center justify-between px-4">
         <Link href="/dashboard" className="flex items-center gap-2">
           <img src="/logo.png" alt="ReviewFlow Logo" className="w-7 h-7 object-contain" />
-          <span className="font-bold text-white text-sm">ReviewFlow</span>
+          <span className="font-wordmark text-base font-extrabold tracking-tight text-white">ReviewFlow</span>
         </Link>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}

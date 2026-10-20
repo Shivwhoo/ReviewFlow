@@ -5,49 +5,75 @@ import Pricing from "@/components/landing/Pricing";
 import FAQ from "@/components/landing/FAQ";
 import Link from "next/link";
 
+const NAV_LINKS = [
+  { href: "#how-it-works", label: "How it works" },
+  { href: "#demo", label: "Demo" },
+  { href: "#pricing", label: "Pricing" },
+  { href: "#faq", label: "FAQ" },
+];
+
+function LogoMark({ size = 32, dark = false }: { size?: number; dark?: boolean }) {
+  return (
+    <span
+      className={`flex shrink-0 items-center justify-center rounded-xl ${
+        dark ? "bg-[#FF8A1F]" : "bg-[#17120E]"
+      }`}
+      style={{ width: size, height: size }}
+    >
+      <svg width={size * 0.56} height={size * 0.56} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"
+          fill={dark ? "#17120E" : "#FF8A1F"}
+        />
+      </svg>
+    </span>
+  );
+}
+
 export default function LandingPage() {
   return (
-    <>
+    <div className="reviewflow-theme min-h-dvh w-full overflow-x-hidden bg-[#FBF6EC]">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-surface-0/80 backdrop-blur-lg border-b border-white/5">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-16">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="ReviewFlow Logo" className="w-8 h-8 object-contain" />
-            <span className="font-bold text-white text-lg">ReviewFlow</span>
+      <nav className="landing-nav fixed left-0 right-0 top-0 z-50 border-b border-[#17120E]/10 bg-[#FBF6EC]/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-[68px] max-w-6xl items-center justify-between px-4 sm:px-6">
+          <Link href="/" className="flex items-center gap-2.5" aria-label="ReviewFlow home">
+            <LogoMark />
+            <span className="font-wordmark text-xl font-extrabold tracking-tight text-[#17120E] sm:text-2xl">
+              ReviewFlow
+            </span>
           </Link>
-          <div className="hidden sm:flex items-center gap-6 text-sm text-white/50">
-            <a href="#how-it-works" className="hover:text-white transition-colors">
-              How it Works
-            </a>
-            <a href="#demo" className="hover:text-white transition-colors">
-              Demo
-            </a>
-            <a href="#pricing" className="hover:text-white transition-colors">
-              Pricing
-            </a>
-            <a href="#faq" className="hover:text-white transition-colors">
-              FAQ
-            </a>
+
+          <div className="hidden items-center gap-1 font-nav-link text-[15px] font-medium md:flex">
+            {NAV_LINKS.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                className="landing-nav-link rounded-full px-4 py-2 text-[#17120E]/75 transition-colors hover:bg-[#17120E]/8 hover:text-[#17120E]"
+              >
+                {l.label}
+              </a>
+            ))}
           </div>
-          <div className="flex items-center gap-3">
+
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/signin"
-              className="text-sm text-white/70 hover:text-white transition-colors"
+              className="hidden rounded-full px-4 py-2 font-nav-link text-[15px] font-semibold text-[#17120E] transition-colors hover:bg-[#17120E]/8 sm:inline-block"
             >
-              Sign In
+              Sign in
             </Link>
             <Link
               href="/signin"
-              className="text-sm px-4 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-medium hover:from-violet-500 hover:to-fuchsia-500 transition-all"
+              className="rounded-full bg-[#17120E] px-4 py-2 font-button text-sm font-semibold text-[#FBF6EC] shadow-[0_8px_20px_-8px_#17120E99] transition hover:bg-[#0B6E4F] sm:px-6 sm:text-base"
             >
-              Get Started
+              Get started
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Spacer for fixed nav */}
-      <div className="h-16" />
+      <div className="h-[68px]" />
 
       {/* Page Sections */}
       <Hero />
@@ -57,27 +83,25 @@ export default function LandingPage() {
       <FAQ />
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-12 px-4">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="ReviewFlow Logo" className="w-6 h-6 object-contain" />
-            <span className="text-sm font-semibold text-white/60">
-              ReviewFlow AI
-            </span>
+      <footer className="landing-footer bg-[#17120E] px-4 py-12 text-[#FBF6EC] sm:px-8">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 sm:flex-row">
+          <div className="flex items-center gap-2.5">
+            <LogoMark dark />
+            <span className="font-wordmark text-xl font-extrabold tracking-tight">ReviewFlow AI</span>
           </div>
-          <p className="text-xs text-white/30">
+          <p className="text-center font-body text-sm text-[#FBF6EC]/65 sm:text-left">
             © {new Date().getFullYear()} ReviewFlow AI. All rights reserved.
           </p>
-          <div className="flex gap-4 text-xs text-white/30">
-            <a href="#" className="hover:text-white/50 transition-colors">
+          <div className="flex gap-6 font-body text-sm">
+            <a href="#" className="text-[#FBF6EC]/85 underline underline-offset-4 transition-colors hover:text-[#FF8A1F]">
               Privacy Policy
             </a>
-            <a href="#" className="hover:text-white/50 transition-colors">
+            <a href="#" className="text-[#FBF6EC]/85 underline underline-offset-4 transition-colors hover:text-[#FF8A1F]">
               Terms of Service
             </a>
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 }

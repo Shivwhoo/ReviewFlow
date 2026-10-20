@@ -1,84 +1,76 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { QrCode, Wand2, Send } from "lucide-react";
+import { QrCode, Sparkles, Send } from "lucide-react";
 
 const STEPS = [
   {
+    number: "1",
     icon: QrCode,
-    title: "Scan QR Code",
+    title: "Customer Scans QRcxcxccx",
     description:
-      "Your customer scans the QR code at your location. No app downloads needed.",
-    color: "from-violet-500 to-indigo-500",
+      "Placed on tables, receipts, or reception counters. Customers scan with any camera — zero apps or logins required.",
+    badgeStyle: "landing-step-badge-crimson",
   },
   {
-    icon: Wand2,
-    title: "AI Generates Review",
+    number: "2",
+    icon: Sparkles,
+    title: "AI Crafts Instant Drafts",
     description:
-      "They pick a rating, tags, and tone. Our AI instantly crafts a natural, authentic review.",
-    color: "from-fuchsia-500 to-pink-500",
+      "Customers tap their rating, highlights, and preferred tone. Our AI instantly writes tailored, human-sounding review drafts.",
+    badgeStyle: "landing-step-badge-lime",
   },
   {
+    number: "3",
     icon: Send,
-    title: "Post to Google",
+    title: "1-Tap Post to Google",
     description:
-      "One tap to copy the review and open Google Maps. They paste and submit — done!",
-    color: "from-amber-500 to-orange-500",
+      "One tap copies the review and opens your Google Maps profile. Customers simply paste and submit in under 30 seconds.",
+    badgeStyle: "landing-step-badge-crimson",
   },
 ];
 
 export default function HowItWorks() {
   return (
-    <section className="px-4 py-24 max-w-6xl mx-auto" id="how-it-works">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="text-center mb-16"
-      >
-        <h2 className="text-3xl sm:text-4xl font-bold text-white">
+    <section className="landing-section-wrap max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24" id="how-it-works">
+      <div className="text-left mb-10 sm:mb-14">
+        <h2 className="landing-section-title font-headline font-extrabold text-3xl sm:text-4xl lg:text-5xl text-[#2B0E14]">
           How it works
         </h2>
-        <p className="mt-3 text-white/40 text-lg">
-          Three simple steps to more Google reviews
+        <p className="landing-section-subtitle font-body text-base sm:text-lg text-[#2B0E14]/80 mt-2">
+          Three simple steps to multiply authentic 5-star Google reviews
         </p>
-      </motion.div>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {STEPS.map((step, i) => {
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 items-stretch">
+        {STEPS.map((step) => {
           const Icon = step.icon;
           return (
-            <motion.div
+            <div
               key={step.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15 }}
-              className="relative group"
+              className="landing-step-card flex flex-col justify-between p-6 sm:p-8 bg-[#FFF3EA] border-[3px] border-[#2B0E14] rounded-3xl shadow-[6px_6px_0_#2B0E14] hover:-translate-y-1 hover:shadow-[8px_8px_0_#2B0E14] transition-all"
             >
-              <div className="bg-glass rounded-2xl p-8 h-full hover:bg-white/[0.06] transition-all duration-300">
-                {/* Step number */}
-                <span className="absolute -top-3 -left-1 text-7xl font-black text-white/[0.03]">
-                  {i + 1}
-                </span>
-                {/* Icon */}
-                <div
-                  className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform`}
-                >
-                  <Icon className="w-7 h-7 text-white" />
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className={`landing-step-badge ${step.badgeStyle} font-headline font-extrabold text-2xl w-14 h-14 rounded-full flex items-center justify-center border-2 border-[#2B0E14]`}>
+                    {step.number}
+                  </div>
+                  <div className="w-10 h-10 rounded-2xl bg-white/70 border-2 border-[#2B0E14] flex items-center justify-center text-[#2B0E14]">
+                    <Icon className="w-5 h-5" />
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">
+
+                <h3 className="landing-step-title font-headline font-bold text-xl sm:text-2xl text-[#2B0E14] leading-snug">
                   {step.title}
                 </h3>
-                <p className="text-white/40 leading-relaxed">
+                <p className="landing-step-desc font-body text-sm sm:text-base text-[#2B0E14]/85 mt-3 leading-relaxed">
                   {step.description}
                 </p>
               </div>
-              {/* Connector line (hidden on last item and mobile) */}
-              {i < STEPS.length - 1 && (
-                <div className="hidden md:block absolute top-1/2 -right-3 w-6 border-t border-dashed border-white/10" />
-              )}
-            </motion.div>
+
+              <div className="mt-6 pt-4 border-t border-[#2B0E14]/15 flex items-center gap-2 text-xs font-headline font-bold text-[#2B0E14]/70 uppercase tracking-wider">
+                <span>Step {step.number} of 3</span>
+              </div>
+            </div>
           );
         })}
       </div>

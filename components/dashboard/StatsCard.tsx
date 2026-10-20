@@ -23,8 +23,8 @@ export default function StatsCard({
     <div className="bg-glass rounded-2xl p-5 hover:bg-white/[0.06] transition-all">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-white/40 font-medium">{title}</p>
-          <p className="text-2xl font-bold text-white mt-1">{value}</p>
+          <p className="font-label text-sm text-white/50 font-medium">{title}</p>
+          <p className="font-number text-2xl font-extrabold text-white mt-1">{value}</p>
           {trend && (
             <p
               className={`text-xs mt-1 ${

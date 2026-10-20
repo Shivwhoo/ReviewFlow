@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 const FAQS = [
@@ -43,61 +42,57 @@ const FAQS = [
 ];
 
 export default function FAQ() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="px-4 py-24 max-w-3xl mx-auto" id="faq">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="text-center mb-12"
-      >
-        <h2 className="text-3xl sm:text-4xl font-bold text-white">
-          Frequently asked questions
-        </h2>
-        <p className="mt-3 text-white/40 text-lg">
-          Everything you need to know about ReviewFlow AI
-        </p>
-      </motion.div>
+    <section className="landing-faq-section py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-[#FFD0B3] border-t-[3px] border-[#2B0E14]" id="faq">
+      <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-10 lg:gap-16 items-start">
+        {/* Left header column */}
+        <div className="w-full lg:w-1/3">
+          <h2 className="landing-section-title font-headline font-extrabold text-3xl sm:text-4xl lg:text-5xl text-[#2B0E14]">
+            Frequently asked questions
+          </h2>
+          <p className="landing-section-subtitle font-body text-base sm:text-lg text-[#2B0E14]/80 mt-3">
+            Everything you need to know about ReviewFlow AI and our compliant review flow.
+          </p>
+        </div>
 
-      <div className="space-y-3">
-        {FAQS.map((faq, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.05 }}
-          >
-            <button
-              onClick={() => setOpenIndex(openIndex === i ? null : i)}
-              className="w-full flex items-center justify-between gap-4 p-5 rounded-xl bg-glass text-left hover:bg-white/[0.06] transition-all"
-            >
-              <span className="font-medium text-white">{faq.question}</span>
-              <ChevronDown
-                className={`w-5 h-5 text-white/40 shrink-0 transition-transform ${
-                  openIndex === i ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-            <AnimatePresence>
-              {openIndex === i && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
+        {/* Right accordion list column */}
+        <div className="w-full lg:w-2/3 flex flex-col gap-3.5">
+          {FAQS.map((faq, i) => {
+            const isOpen = openIndex === i;
+            return (
+              <div
+                key={faq.question}
+                className="bg-[#FFF3EA] border-[3px] border-[#2B0E14] rounded-2xl overflow-hidden shadow-[4px_4px_0_#2B0E14] transition-all"
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenIndex(isOpen ? null : i)}
+                  aria-expanded={isOpen}
+                  className="flex items-center justify-between gap-4 w-full p-4 sm:p-5 text-left bg-transparent border-0 cursor-pointer"
                 >
-                  <p className="px-5 pb-5 pt-2 text-white/50 leading-relaxed">
+                  <span className="font-headline font-bold text-base sm:text-lg text-[#2B0E14] leading-snug">
+                    {faq.question}
+                  </span>
+                  <span
+                    className={`w-8 h-8 rounded-full border-2 border-[#2B0E14] flex items-center justify-center shrink-0 transition-transform duration-200 ${
+                      isOpen ? "bg-[#C8F04D] rotate-180" : "bg-[#B0102F] text-white"
+                    }`}
+                  >
+                    <ChevronDown className="w-4 h-4 text-[#2B0E14]" />
+                  </span>
+                </button>
+
+                {isOpen && (
+                  <div className="px-4 sm:px-5 pb-5 pt-1 border-t border-[#2B0E14]/10 text-sm sm:text-base font-body text-[#2B0E14]/85 leading-relaxed">
                     {faq.answer}
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

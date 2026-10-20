@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,500&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-headline: 'Bricolage Grotesque', sans-serif;
   
   /* Brand colors */
   --color-brand-50: #f5f3ff;
@@ -126,4 +126,716 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+
+/* ---- Brand Theme (Print-Inspired Neo-Brutalist Palette) ---- */
+.reviewflow-theme {
+  --paper: #FFE4D2;
+  --paper-card: #FFF3EA;
+  --paper-alt: #FFD0B3;
+  --ink: #2B0E14;
+  --crimson: #B0102F;
+  --lime: #C8F04D;
+  min-height: 100dvh;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  isolation: isolate;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Typography Roles:
+   - Bricolage Grotesque (500, 700, 800) for headlines, numbers, plan names, logo wordmark
+   - Instrument Sans (400, 500, 600) for body text, buttons, nav links, labels
+*/
+.font-headline,
+.reviewflow-theme :where(h1, h2, h3, h4, h5, h6),
+.landing-headline,
+.landing-section-title,
+.landing-step-title,
+.landing-plan-name,
+.font-wordmark,
+.landing-logo-wordmark,
+.font-number,
+.landing-result-number,
+.landing-stat-number,
+.landing-step-number,
+.landing-plan-price-num {
+  font-family: 'Bricolage Grotesque', sans-serif !important;
+}
+
+.reviewflow-theme :where(h1, h2) {
+  color: var(--ink);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.reviewflow-theme :where(h3) {
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.font-wordmark,
+.landing-logo-wordmark {
+  font-family: 'Bricolage Grotesque', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em;
+}
+
+.font-number,
+.landing-result-number,
+.landing-step-number,
+.landing-plan-price-num {
+  font-family: 'Bricolage Grotesque', sans-serif !important;
+  font-weight: 800 !important;
+}
+
+.font-plan-name,
+.landing-plan-name {
+  font-family: 'Bricolage Grotesque', sans-serif !important;
+  font-weight: 800 !important;
+}
+
+.font-body,
+.reviewflow-theme :where(p, span, li, a, div:not([class*="font-headline"])) {
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+}
+
+.font-button,
+.landing-button,
+.landing-nav-cta,
+.landing-plan-cta,
+.reviewflow-theme :where(button, .btn) {
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  font-weight: 600;
+}
+
+.font-nav-link,
+.landing-nav-link {
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  font-weight: 500;
+}
+
+.font-label,
+.landing-control-label,
+.reviewflow-theme :where(label, .label) {
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  font-weight: 600;
+}
+
+/* Base interactive elements */
+.reviewflow-theme :where(input, textarea, select) {
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  background-color: var(--paper-card);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+}
+
+.reviewflow-theme :where(input:focus, textarea:focus, select:focus) {
+  outline: none;
+  border-color: var(--crimson);
+  box-shadow: 2px 2px 0 var(--crimson);
+}
+
+/* ---- Navbar ---- */
+.reviewflow-theme .landing-nav {
+  height: 68px;
+  background: var(--paper);
+  border-bottom: 2px solid var(--ink);
+}
+
+.reviewflow-theme .landing-nav-link {
+  color: var(--ink);
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 8px 0;
+  transition: opacity 120ms ease;
+}
+
+.reviewflow-theme .landing-nav-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.reviewflow-theme .landing-nav-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 22px;
+  background: var(--crimson);
+  color: var(--paper-card);
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 600;
+  text-decoration: none;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 100ms ease, box-shadow 100ms ease;
+}
+
+.reviewflow-theme .landing-nav-cta:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+/* ---- Hero Section ---- */
+.reviewflow-theme .landing-hero {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding: clamp(32px, 6vw, 80px) clamp(16px, 4vw, 56px);
+}
+
+@media (min-width: 1024px) {
+  .reviewflow-theme .landing-hero {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 64px;
+  }
+}
+
+.reviewflow-theme .landing-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: var(--lime);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reviewflow-theme .landing-headline {
+  margin: 28px 0 0;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: clamp(44px, 7.2vw, 92px);
+  line-height: 0.96;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+}
+
+.reviewflow-theme .landing-headline span.lime-badge {
+  display: inline-block;
+  background: var(--lime);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 0 14px 4px;
+  transform: rotate(-2deg);
+}
+
+.reviewflow-theme .landing-headline span.crimson-text {
+  color: var(--crimson);
+}
+
+.reviewflow-theme .landing-description {
+  margin: 28px 0 0;
+  max-width: 520px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.reviewflow-theme .landing-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 28px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  text-decoration: none;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 100ms ease, box-shadow 100ms ease;
+}
+
+.reviewflow-theme .landing-button-primary {
+  background: var(--crimson);
+  color: var(--paper-card);
+}
+
+.reviewflow-theme .landing-button-demo {
+  background: var(--paper-card);
+  color: var(--ink);
+}
+
+.reviewflow-theme .landing-button:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.reviewflow-theme .landing-button:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.reviewflow-theme .landing-hero-card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background: var(--paper-card);
+  border: 2px solid var(--ink);
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 10px 10px 0 var(--crimson);
+  transform: rotate(1.5deg);
+  transition: transform 200ms ease;
+}
+
+.reviewflow-theme .landing-hero-card:hover {
+  transform: rotate(0deg);
+}
+
+/* ---- Results Banner ---- */
+.reviewflow-theme .landing-results-banner {
+  background: var(--lime);
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  padding: 36px clamp(16px, 4vw, 56px);
+}
+
+.reviewflow-theme .landing-results-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .reviewflow-theme .landing-results-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px;
+    text-align: left;
+  }
+}
+
+.reviewflow-theme .landing-result-number {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: clamp(44px, 6vw, 72px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.reviewflow-theme .landing-result-label {
+  margin-top: 6px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+/* ---- How It Works ---- */
+.reviewflow-theme .landing-section-wrap {
+  padding: clamp(56px, 8vw, 112px) clamp(16px, 4vw, 56px);
+}
+
+.reviewflow-theme .landing-section-title {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: clamp(38px, 5.5vw, 68px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.reviewflow-theme .landing-section-subtitle {
+  margin: 16px 0 0;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 19px;
+  color: var(--ink);
+  opacity: 0.85;
+}
+
+.reviewflow-theme .landing-step-card {
+  flex: 1 1 280px;
+  min-width: 0;
+  background: var(--paper-card);
+  border: 2px solid var(--ink);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 6px 6px 0 var(--ink);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.reviewflow-theme .landing-step-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 var(--ink);
+}
+
+.reviewflow-theme .landing-step-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+}
+
+.reviewflow-theme .landing-step-badge-crimson {
+  background: var(--crimson);
+  color: var(--paper-card);
+}
+
+.reviewflow-theme .landing-step-badge-lime {
+  background: var(--lime);
+  color: var(--ink);
+}
+
+.reviewflow-theme .landing-step-title {
+  margin: 24px 0 0;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.reviewflow-theme .landing-step-desc {
+  margin: 12px 0 0;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink);
+  opacity: 0.85;
+}
+
+/* ---- Interactive Demo ---- */
+.reviewflow-theme .landing-demo-section {
+  background: var(--crimson);
+  color: var(--paper);
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  padding: clamp(56px, 8vw, 112px) clamp(16px, 4vw, 56px);
+}
+
+.reviewflow-theme .landing-demo-section .landing-section-title {
+  color: var(--paper);
+}
+
+.reviewflow-theme .landing-demo-section .landing-section-subtitle {
+  color: var(--paper);
+  opacity: 0.9;
+}
+
+.reviewflow-theme .landing-demo-box {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 48px;
+  background: var(--paper-card);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 28px;
+  box-shadow: 10px 10px 0 var(--ink);
+  overflow: hidden;
+}
+
+.reviewflow-theme .landing-demo-controls {
+  flex: 1 1 400px;
+  min-width: 0;
+  padding: clamp(24px, 3.5vw, 44px);
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.reviewflow-theme .landing-control-title {
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.reviewflow-theme .landing-chip {
+  min-height: 44px;
+  padding: 0 20px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 16px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.reviewflow-theme .landing-chip-active-crimson {
+  background: var(--crimson);
+  color: var(--paper-card);
+  font-weight: 600;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.reviewflow-theme .landing-chip-active-ink {
+  background: var(--ink);
+  color: var(--lime);
+  font-weight: 600;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.reviewflow-theme .landing-chip-inactive {
+  background: transparent;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.reviewflow-theme .landing-chip-inactive:hover {
+  background: var(--paper);
+}
+
+.reviewflow-theme .landing-demo-preview-pane {
+  flex: 1 1 400px;
+  min-width: 0;
+  background: var(--lime);
+  border-left: 2px solid var(--ink);
+  padding: clamp(24px, 3.5vw, 44px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.reviewflow-theme .landing-demo-review-text {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 500;
+  font-size: clamp(22px, 2.4vw, 30px);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+/* ---- Pricing Section ---- */
+.reviewflow-theme .landing-billing-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 36px;
+  padding: 18px 22px;
+  background: var(--lime);
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  color: var(--ink);
+  font-family: 'Instrument Sans', sans-serif;
+}
+
+.reviewflow-theme .landing-pricing-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-top: 48px;
+  align-items: stretch;
+}
+
+.reviewflow-theme .landing-pricing-card {
+  flex: 1 1 300px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper-card);
+  border: 2px solid var(--ink);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 6px 6px 0 var(--ink);
+  position: relative;
+}
+
+.reviewflow-theme .landing-pricing-card-popular {
+  background: var(--lime);
+  box-shadow: 8px 8px 0 var(--ink);
+}
+
+.reviewflow-theme .landing-plan-name {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 30px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.reviewflow-theme .landing-plan-pill {
+  margin-top: 8px;
+  display: inline-block;
+  align-self: flex-start;
+  padding: 3px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.reviewflow-theme .landing-plan-price-num {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 60px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.reviewflow-theme .landing-plan-period {
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 500;
+  font-size: 17px;
+  color: var(--ink);
+}
+
+.reviewflow-theme .landing-popular-tag {
+  position: absolute;
+  top: -16px;
+  right: 20px;
+  background: var(--crimson);
+  color: var(--paper-card);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 12px;
+  transform: rotate(-3deg);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.reviewflow-theme .landing-plan-cta {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  background: var(--crimson);
+  color: var(--paper-card);
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  text-decoration: none;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 100ms ease, box-shadow 100ms ease;
+}
+
+.reviewflow-theme .landing-plan-cta-pro {
+  background: var(--ink);
+  color: var(--lime);
+}
+
+.reviewflow-theme .landing-plan-cta:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+/* ---- FAQ Section ---- */
+.reviewflow-theme .landing-faq-section {
+  background: var(--paper-alt);
+  border-top: 2px solid var(--ink);
+  padding: clamp(56px, 8vw, 112px) clamp(16px, 4vw, 56px);
+}
+
+.reviewflow-theme .landing-faq-card {
+  background: var(--paper-card);
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.reviewflow-theme .landing-faq-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 64px;
+  padding: 14px 22px;
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.reviewflow-theme .landing-faq-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+}
+
+.reviewflow-theme .landing-faq-circle-open {
+  background: var(--lime);
+}
+
+.reviewflow-theme .landing-faq-circle-closed {
+  background: var(--crimson);
+}
+
+/* ---- Footer ---- */
+.reviewflow-theme .landing-footer {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 36px clamp(16px, 4vw, 56px);
+}
+
+.reviewflow-theme .landing-footer a {
+  color: var(--paper);
+  font-family: 'Instrument Sans', sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 120ms ease;
+}
+
+.reviewflow-theme .landing-footer a:hover {
+  color: var(--lime);
+}
+
+@media (max-width: 767px) {
+  .reviewflow-theme .landing-demo-preview-pane {
+    border-left: 0;
+    border-top: 2px solid var(--ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reviewflow-theme *,
+  .reviewflow-theme *::before,
+  .reviewflow-theme *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

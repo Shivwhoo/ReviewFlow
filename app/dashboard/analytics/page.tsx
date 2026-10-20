@@ -83,11 +83,11 @@ export default function AnalyticsPage() {
 
       {/* Scans vs Conversions */}
       <div className="bg-glass rounded-2xl p-6 mb-6">
-        <h3 className="text-sm font-medium text-white/60 mb-4 uppercase tracking-wide">
+        <h3 className="font-label text-sm font-semibold text-white/60 mb-4 uppercase tracking-wide">
           Scans vs Conversions
         </h3>
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-72 w-full min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
             <LineChart data={dailyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
               <XAxis dataKey="date" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 11 }} />
@@ -112,11 +112,11 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Tag Frequency */}
         <div className="bg-glass rounded-2xl p-6">
-          <h3 className="text-sm font-medium text-white/60 mb-4 uppercase tracking-wide">
+          <h3 className="font-label text-sm font-semibold text-white/60 mb-4 uppercase tracking-wide">
             Tag Frequency
           </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-64 w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
               <BarChart data={tagData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis type="number" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 11 }} />
@@ -138,11 +138,11 @@ export default function AnalyticsPage() {
 
         {/* Rating Distribution */}
         <div className="bg-glass rounded-2xl p-6">
-          <h3 className="text-sm font-medium text-white/60 mb-4 uppercase tracking-wide">
+          <h3 className="font-label text-sm font-semibold text-white/60 mb-4 uppercase tracking-wide">
             Rating Distribution
           </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-64 w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
               <PieChart>
                 <Pie
                   data={ratingData}

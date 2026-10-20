@@ -10,24 +10,65 @@ export const metadata: Metadata = {
 
 export default function PricingPage() {
   return (
-    <div className="min-h-dvh">
-      {/* Nav */}
-      <nav className="border-b border-white/5 bg-surface-0">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-16">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="ReviewFlow Logo" className="w-8 h-8 object-contain" />
-            <span className="font-bold text-white text-lg">ReviewFlow</span>
-          </Link>
-          <Link
-            href="/signin"
-            className="text-sm px-4 py-2 rounded-lg bg-white/10 text-white font-medium hover:bg-white/15 transition-all"
-          >
-            Sign In
-          </Link>
-        </div>
-      </nav>
+    <div className="reviewflow-theme min-h-dvh flex flex-col justify-between">
+      <div>
+        {/* Navigation */}
+        <nav className="landing-nav fixed top-0 left-0 right-0 z-50">
+          <div className="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 h-[68px]">
+            <Link href="/" className="flex items-center gap-2.5">
+              <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-[#B0102F] border-2 border-[#2B0E14] shadow-[2px_2px_0_#2B0E14]">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"
+                    fill="#C8F04D"
+                  />
+                </svg>
+              </span>
+              <span className="font-wordmark text-2xl font-extrabold tracking-tight text-[#2B0E14]">
+                ReviewFlow
+              </span>
+            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/signin"
+                className="font-nav-link text-[16px] font-semibold text-[#2B0E14] underline underline-offset-4 hover:opacity-80 transition-opacity"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/signin"
+                className="landing-nav-cta"
+              >
+                Get Started
+              </Link>
+            </div>
+          </div>
+        </nav>
 
-      <Pricing />
+        {/* Spacer for fixed nav */}
+        <div className="h-[68px]" />
+
+        <Pricing />
+      </div>
+
+      {/* Footer */}
+      <footer className="landing-footer py-10 px-4 sm:px-8 mt-16">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="font-wordmark text-lg font-bold text-[#FFE4D2]">
+              ReviewFlow AI
+            </span>
+          </div>
+          <p className="font-body text-xs text-[#FFE4D2]/70">
+            © {new Date().getFullYear()} ReviewFlow AI. All rights reserved.
+          </p>
+          <div className="flex gap-4 font-body text-xs">
+            <Link href="/" className="text-[#FFE4D2] hover:text-[#C8F04D]">
+              ← Home
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
