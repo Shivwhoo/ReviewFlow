@@ -520,7 +520,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                           ) : (
                             <>
                               <Copy className="w-3.5 h-3.5" />
-                              <span>Copy</span>
+                              <span>Copy & Post on Google</span>
                             </>
                           )}
                         </button>
