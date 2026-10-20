@@ -206,11 +206,11 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
       
       setTimeout(() => {
          window.open(business?.reviewUrl, "_blank", "noopener,noreferrer");
-      }, 3000);
+      }, 1500);
       
       setTimeout(() => {
         setCopySuccess((current) => (current === index ? null : current));
-      }, 3000);
+      }, 1500);
     } catch (err) {
       console.error("Auto-copy clipboard API failed: ", err);
       showToast("Failed to copy");
