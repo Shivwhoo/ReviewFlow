@@ -1,5 +1,4 @@
 import type { Tone } from "@/lib/db/models/ReviewScan";
-
 interface PromptInput {
   businessName: string;
   rating: number;

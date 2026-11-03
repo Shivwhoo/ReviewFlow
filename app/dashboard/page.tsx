@@ -37,43 +37,45 @@ export default function DashboardOverview() {
 
   if (businessLoading || (business && !business.onboardingCompleted)) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
-        <p className="text-white/40 text-sm animate-pulse">Initializing Dashboard...</p>
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-[#FF8A1F]" />
+        <p className="animate-pulse font-body text-sm text-[#17120E]/55">Initializing Dashboard...</p>
       </div>
     );
   }
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-white/40 mt-1">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="font-wordmark text-3xl font-extrabold tracking-tight text-[#17120E] sm:text-4xl">
+          Dashboard
+        </h1>
+        <p className="mt-1.5 font-body text-[15px] text-[#17120E]/60">
           Welcome back, {session?.user?.name?.split(" ")[0] || "there"}
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="mb-6 grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:gap-4 lg:mb-8 lg:grid-cols-4">
         <StatsCard
           title="Total Scans"
           value={stats?.totalScans ?? 0}
           icon={Eye}
           trend={{ value: 12, label: "vs last month" }}
-          color="from-violet-500 to-indigo-500"
+          color="bg-[#17120E] text-[#FF8A1F]"
         />
         <StatsCard
           title="Conversions"
           value={stats?.conversions ?? 0}
           icon={MousePointerClick}
           trend={{ value: 8, label: "vs last month" }}
-          color="from-emerald-500 to-teal-500"
+          color="bg-[#0B6E4F] text-[#FBF6EC]"
         />
         <StatsCard
           title="Conversion Rate"
           value={`${stats?.conversionRate ?? 0}%`}
           icon={Sparkles}
-          color="from-fuchsia-500 to-pink-500"
+          color="bg-[#FF8A1F] text-[#17120E]"
         />
         <StatsCard
           title="AI Credits Used"
@@ -85,42 +87,48 @@ export default function DashboardOverview() {
               : "50"
           }`}
           icon={QrCode}
-          color="from-amber-500 to-orange-500"
+          color="bg-[#17120E]/10 text-[#17120E]"
         />
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-glass rounded-2xl p-6">
-        <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="rounded-3xl border border-[#17120E]/10 bg-white/70 p-5 shadow-[0_8px_20px_-12px_#17120E55] sm:p-6">
+        <h2 className="mb-4 font-label text-lg font-bold tracking-tight text-[#17120E]">Quick Actions</h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <a
             href="/dashboard/qr"
-            className="flex items-center gap-3 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all"
+            className="flex items-center gap-3 rounded-2xl border border-[#17120E]/10 bg-[#FBF6EC] p-4 transition hover:border-[#17120E]/30 hover:bg-white"
           >
-            <QrCode className="w-8 h-8 text-violet-400" />
-            <div>
-              <p className="text-sm font-medium text-white">Manage QR Codes</p>
-              <p className="text-xs text-white/40">Claim or download QR codes</p>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#17120E] text-[#FF8A1F]">
+              <QrCode className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-label text-sm font-bold text-[#17120E]">Manage QR Codes</p>
+              <p className="font-body text-xs text-[#17120E]/55">Claim or download QR codes</p>
             </div>
           </a>
           <a
             href="/dashboard/analytics"
-            className="flex items-center gap-3 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all"
+            className="flex items-center gap-3 rounded-2xl border border-[#17120E]/10 bg-[#FBF6EC] p-4 transition hover:border-[#17120E]/30 hover:bg-white"
           >
-            <Eye className="w-8 h-8 text-emerald-400" />
-            <div>
-              <p className="text-sm font-medium text-white">View Analytics</p>
-              <p className="text-xs text-white/40">Charts and insights</p>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#0B6E4F] text-[#FBF6EC]">
+              <Eye className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-label text-sm font-bold text-[#17120E]">View Analytics</p>
+              <p className="font-body text-xs text-[#17120E]/55">Charts and insights</p>
             </div>
           </a>
           <a
             href="/dashboard/settings"
-            className="flex items-center gap-3 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all"
+            className="flex items-center gap-3 rounded-2xl border border-[#17120E]/10 bg-[#FBF6EC] p-4 transition hover:border-[#17120E]/30 hover:bg-white"
           >
-            <Sparkles className="w-8 h-8 text-amber-400" />
-            <div>
-              <p className="text-sm font-medium text-white">Business Profile</p>
-              <p className="text-xs text-white/40">Manage your settings</p>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#FF8A1F] text-[#17120E]">
+              <Sparkles className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-label text-sm font-bold text-[#17120E]">Business Profile</p>
+              <p className="font-body text-xs text-[#17120E]/55">Manage your settings</p>
             </div>
           </a>
         </div>

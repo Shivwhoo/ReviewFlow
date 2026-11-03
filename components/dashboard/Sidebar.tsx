@@ -26,25 +26,75 @@ const NAV_ITEMS = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
+const navClass = (isActive: boolean) =>
+  `flex items-center gap-3 rounded-full px-4 py-3 font-nav-link text-sm font-medium transition-all lg:py-2.5 ${
+    isActive
+      ? "bg-[#FBF6EC] text-[#17120E] shadow-[0_8px_20px_-10px_#000]"
+      : "text-[#FBF6EC]/65 hover:bg-[#FBF6EC]/10 hover:text-[#FBF6EC]"
+  }`;
+
+const ADMIN_CLASS =
+  "mt-4 flex items-center gap-3 rounded-full px-4 py-3 font-nav-link text-sm font-medium text-red-300 transition-all hover:bg-red-500/15 hover:text-red-200 lg:py-2.5";
+
 export default function DashboardSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const tierColors: Record<string, string> = {
-    free: "bg-white/10 text-white/60",
-    pro: "bg-violet-500/20 text-violet-300",
-    "multi-location": "bg-amber-500/20 text-amber-300",
+    free: "bg-[#FBF6EC]/10 text-[#FBF6EC]/70",
+    pro: "bg-[#FF8A1F] text-[#17120E]",
+    "multi-location": "bg-[#0B6E4F] text-[#FBF6EC]",
   };
+
+  // Same user block is shown in the desktop sidebar and the mobile drawer
+  const userBlock = session?.user && (
+    <div className="mt-4 border-t border-[#FBF6EC]/10 pt-4">
+      <div className="mb-3 flex items-center gap-3 px-2">
+        {session.user.image ? (
+          <img
+            src={session.user.image}
+            alt=""
+            className="h-9 w-9 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FF8A1F] text-sm font-bold text-[#17120E]">
+            {session.user.name?.[0]?.toUpperCase()}
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-body text-sm font-semibold text-[#FBF6EC]">
+            {session.user.name}
+          </p>
+          <span
+            className={`inline-block rounded-full px-2.5 py-0.5 font-body text-[11px] font-semibold capitalize ${
+              tierColors[session.user.subscriptionTier || "free"]
+            }`}
+          >
+            {session.user.subscriptionTier || "free"}
+          </span>
+        </div>
+      </div>
+      <button
+        onClick={() => signOut({ callbackUrl: "/" })}
+        className="flex w-full items-center gap-2 rounded-full px-4 py-3 font-body text-sm font-medium text-[#FBF6EC]/65 transition-colors hover:bg-[#FBF6EC]/10 hover:text-red-300 lg:py-2.5"
+      >
+        <LogOut className="h-4 w-4" />
+        Sign Out
+      </button>
+    </div>
+  );
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 min-h-dvh bg-surface-100 border-r border-white/5 p-4">
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col overflow-y-auto border-r border-[#FBF6EC]/10 bg-[#17120E] p-4 lg:flex">
         {/* Logo */}
-        <Link href="/dashboard" className="flex items-center gap-2 mb-8 px-2">
-          <img src="/logo.png" alt="ReviewFlow Logo" className="w-8 h-8 object-contain" />
-          <span className="font-wordmark text-xl font-extrabold tracking-tight text-white">ReviewFlow</span>
+        <Link href="/dashboard" className="mb-8 flex items-center gap-2.5 px-2">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#FBF6EC]">
+            <img src="/logo.png" alt="ReviewFlow Logo" className="h-6 w-6 object-contain" />
+          </span>
+          <span className="font-wordmark text-xl font-extrabold tracking-tight text-[#FBF6EC]">ReviewFlow</span>
         </Link>
 
         {/* Nav items */}
@@ -58,79 +108,42 @@ export default function DashboardSidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  isActive
-                    ? "bg-white/10 text-white"
-                    : "text-white/40 hover:text-white/70 hover:bg-white/5"
-                }`}
+                aria-current={isActive ? "page" : undefined}
+                className={navClass(!!isActive)}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="h-5 w-5" />
                 {item.label}
               </Link>
             );
           })}
 
           {session?.user?.role === "admin" && (
-            <Link
-              href="/admin"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-red-400 hover:text-red-300 hover:bg-red-500/10 mt-4"
-            >
-              <Settings className="w-5 h-5" />
+            <Link href="/admin" className={ADMIN_CLASS}>
+              <Settings className="h-5 w-5" />
               Admin Portal
             </Link>
           )}
         </nav>
 
         {/* User info */}
-        {session?.user && (
-          <div className="border-t border-white/5 pt-4 mt-4">
-            <div className="flex items-center gap-3 px-2 mb-3">
-              {session.user.image ? (
-                <img
-                  src={session.user.image}
-                  alt=""
-                  className="w-8 h-8 rounded-full"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm text-white/60">
-                  {session.user.name?.[0]?.toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-white truncate">
-                  {session.user.name}
-                </p>
-                <span
-                  className={`inline-block text-[10px] px-2 py-0.5 rounded-full capitalize ${
-                    tierColors[session.user.subscriptionTier || "free"]
-                  }`}
-                >
-                  {session.user.subscriptionTier || "free"}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-white/40 hover:text-red-400 transition-colors w-full rounded-lg hover:bg-white/5"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </button>
-          </div>
-        )}
+        {userBlock}
       </aside>
 
       {/* Mobile Top Bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-surface-100/95 backdrop-blur-lg border-b border-white/5 flex items-center justify-between px-4">
+      <div className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center justify-between border-b border-[#FBF6EC]/10 bg-[#17120E]/95 px-4 backdrop-blur-lg lg:hidden">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <img src="/logo.png" alt="ReviewFlow Logo" className="w-7 h-7 object-contain" />
-          <span className="font-wordmark text-base font-extrabold tracking-tight text-white">ReviewFlow</span>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FBF6EC]">
+            <img src="/logo.png" alt="ReviewFlow Logo" className="h-5 w-5 object-contain" />
+          </span>
+          <span className="font-wordmark text-lg font-extrabold tracking-tight text-[#FBF6EC]">ReviewFlow</span>
         </Link>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 rounded-lg bg-white/5 text-white/60"
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileOpen}
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FBF6EC]/10 text-[#FBF6EC] transition hover:bg-[#FBF6EC]/20"
         >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
@@ -141,7 +154,7 @@ export default function DashboardSidebar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-[#17120E]/60 backdrop-blur-sm lg:hidden"
             onClick={() => setMobileOpen(false)}
           >
             <motion.div
@@ -149,10 +162,10 @@ export default function DashboardSidebar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25 }}
-              className="absolute right-0 top-0 bottom-0 w-64 bg-surface-100 p-4 pt-16"
+              className="absolute bottom-0 right-0 top-0 flex w-[85vw] max-w-xs flex-col overflow-y-auto bg-[#17120E] p-4 pt-16 shadow-[-20px_0_40px_-20px_#000]"
               onClick={(e) => e.stopPropagation()}
             >
-              <nav className="space-y-1">
+              <nav className="flex-1 space-y-1">
                 {NAV_ITEMS.map((item) => {
                   const isActive =
                     pathname === item.href ||
@@ -164,25 +177,35 @@ export default function DashboardSidebar() {
                       key={item.href}
                       href={item.href}
                       onClick={() => setMobileOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                        isActive
-                          ? "bg-white/10 text-white"
-                          : "text-white/40 hover:text-white/70 hover:bg-white/5"
-                      }`}
+                      aria-current={isActive ? "page" : undefined}
+                      className={navClass(!!isActive)}
                     >
-                      <Icon className="w-5 h-5" />
+                      <Icon className="h-5 w-5" />
                       {item.label}
                     </Link>
                   );
                 })}
+
+                {session?.user?.role === "admin" && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileOpen(false)}
+                    className={ADMIN_CLASS}
+                  >
+                    <Settings className="h-5 w-5" />
+                    Admin Portal
+                  </Link>
+                )}
               </nav>
+
+              {userBlock}
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Mobile bottom spacer */}
-      <div className="lg:hidden h-14" />
+      <div className="h-14 lg:hidden" />
     </>
   );
 }

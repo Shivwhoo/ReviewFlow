@@ -32,7 +32,7 @@ export default auth((req) => {
   // If already logged in and visiting /signin, redirect to /dashboard
   if (pathname === "/signin") {
     if (session?.user) {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+      return NextResponse.redirect(new URL("/dashboard", req.url));             
     }
   }
 

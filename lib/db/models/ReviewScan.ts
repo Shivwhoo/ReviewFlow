@@ -3,7 +3,8 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 export type Rating = 1 | 2 | 3 | 4 | 5;
 export type Tone = "casual" | "professional" | "genz" | "short";
 
-export interface IReviewScan extends Document {
+export interface IReviewScan extends Document 
+{
   _id: mongoose.Types.ObjectId;
   qrId: string;
   businessId: mongoose.Types.ObjectId;

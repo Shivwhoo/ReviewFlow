@@ -105,17 +105,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const qrCode = await QRCode.findOne({ qrId });
+    const qrCode = await QRCode.findOneAndUpdate(
+      {
+        qrId,
+        assignedToBusinessId: null,
+      },
+      {
+        $set: {
+          assignedToBusinessId: business._id,
+          assignedToLocationId: locationId || null,
+          activatedAt: new Date(),
+        },
+      },
+      { new: true }
+    );
+
     if (!qrCode) {
       return NextResponse.json(
-        { error: "QR code not found" },
-        { status: 404 }
-      );
-    }
-
-    if (qrCode.assignedToBusinessId) {
-      return NextResponse.json(
-        { error: "This QR code is already assigned to a business" },
+        { error: "QR code not found or already assigned" },
         { status: 409 }
       );
     }

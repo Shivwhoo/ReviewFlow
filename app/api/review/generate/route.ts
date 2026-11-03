@@ -20,11 +20,11 @@ const ratelimit = new Ratelimit({
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit by IP
+    // Rate limit by IP                                              
     const ip =
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       request.headers.get("x-real-ip") ||
-      "127.0.0.1";
+      "127.0.0.1";                                    
     const ipHash = hashIp(ip);
 
     const { success: rateLimitOk, limit, reset, remaining } = await ratelimit.limit(ipHash);
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
           aiContextPrompt: business.aiContextPrompt || "",
           userNotes,
           length,
-        });
+        }); 
 
         const completion = await groqRotator.generateChatCompletion({
           model: process.env.GROQ_MODEL || "openai/gpt-oss-20b",

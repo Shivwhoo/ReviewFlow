@@ -10,6 +10,7 @@ declare module "next-auth" {
       name: string;
       email: string;
       image?: string;
+      
       role: "business" | "admin";
       subscriptionTier: "free" | "pro" | "multi-location";
     };
@@ -32,7 +33,7 @@ declare module "next-auth" {
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: MongoDBAdapter(client),
-  callbacks: {
+  callbacks: {          
     ...authConfig.callbacks,
     async jwt({ token, user }) {
       if (user) {

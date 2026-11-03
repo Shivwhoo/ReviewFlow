@@ -9,6 +9,7 @@ interface StatsCardProps {
     value: number;
     label: string;
   };
+  // Classes for the icon tile: background + icon color, e.g. "bg-[#17120E] text-[#FF8A1F]"
   color?: string;
 }
 
@@ -17,29 +18,31 @@ export default function StatsCard({
   value,
   icon: Icon,
   trend,
-  color = "from-violet-500 to-fuchsia-500",
+  color = "bg-[#17120E] text-[#FF8A1F]",
 }: StatsCardProps) {
   return (
-    <div className="bg-glass rounded-2xl p-5 hover:bg-white/[0.06] transition-all">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="font-label text-sm text-white/50 font-medium">{title}</p>
-          <p className="font-number text-2xl font-extrabold text-white mt-1">{value}</p>
+    <div className="rounded-3xl border border-[#17120E]/10 bg-white/70 p-5 shadow-[0_8px_20px_-14px_#17120E55] transition hover:border-[#17120E]/20 hover:bg-white">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-label text-sm font-medium text-[#17120E]/60">{title}</p>
+          <p className="mt-1.5 truncate font-number text-2xl font-extrabold tracking-tight text-[#17120E] sm:text-3xl">
+            {value}
+          </p>
           {trend && (
             <p
-              className={`text-xs mt-1 ${
-                trend.value >= 0 ? "text-emerald-400" : "text-red-400"
+              className={`mt-1.5 font-body text-xs font-semibold ${
+                trend.value >= 0 ? "text-[#0B6E4F]" : "text-red-600"
               }`}
             >
               {trend.value >= 0 ? "↑" : "↓"} {Math.abs(trend.value)}%{" "}
-              <span className="text-white/30">{trend.label}</span>
+              <span className="font-normal text-[#17120E]/50">{trend.label}</span>
             </p>
           )}
         </div>
         <div
-          className={`w-10 h-10 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shrink-0`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${color}`}
         >
-          <Icon className="w-5 h-5 text-white" />
+          <Icon className="h-5 w-5" />
         </div>
       </div>
     </div>
