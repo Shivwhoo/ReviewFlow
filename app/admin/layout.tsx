@@ -28,21 +28,23 @@ export default function AdminLayout({
   const { data: session } = useSession();
 
   return (
-    <div className="flex min-h-dvh bg-surface-0">
+    <div className="reviewflow-theme flex min-h-dvh w-full bg-[#FBF6EC] text-[#17120E]">
       {/* Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 min-h-dvh bg-surface-100 border-r border-red-500/10 p-4">
-        <Link href="/admin" className="flex items-center gap-2 mb-2 px-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
-            <span className="text-sm font-bold text-white">A</span>
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col bg-[#17120E] p-4 text-[#FBF6EC] lg:flex">
+        <Link href="/admin" className="mb-2 flex items-center gap-2.5 px-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FBF6EC]">
+            <span className="font-wordmark text-sm font-extrabold text-[#17120E]">A</span>
           </div>
-          <span className="font-bold text-white">Admin Portal</span>
+          <span className="font-wordmark text-lg font-extrabold tracking-tight text-[#FBF6EC]">
+            Admin Portal
+          </span>
         </Link>
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 px-3 py-1.5 text-xs text-white/30 hover:text-white/50 mb-4"
+          className="mb-4 flex items-center gap-2 rounded-full px-3 py-2 font-body text-xs text-[#FBF6EC]/55 transition hover:bg-[#FBF6EC]/10 hover:text-[#FBF6EC]"
         >
-          <ArrowLeft className="w-3 h-3" />
-          Back to Dashboard
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to dashboard
         </Link>
 
         <nav className="flex-1 space-y-1">
@@ -55,13 +57,14 @@ export default function AdminLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                aria-current={isActive ? "page" : undefined}
+                className={`flex items-center gap-3 rounded-full px-4 py-2.5 font-nav-link text-sm transition ${
                   isActive
-                    ? "bg-red-500/10 text-red-300"
-                    : "text-white/40 hover:text-white/70 hover:bg-white/5"
+                    ? "bg-[#FBF6EC] font-semibold text-[#17120E]"
+                    : "text-[#FBF6EC]/65 hover:bg-[#FBF6EC]/10 hover:text-[#FBF6EC]"
                 }`}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="h-5 w-5" />
                 {item.label}
               </Link>
             );
@@ -69,15 +72,15 @@ export default function AdminLayout({
         </nav>
 
         {session?.user && (
-          <div className="border-t border-white/5 pt-4 mt-4">
-            <p className="text-xs text-white/40 px-2 mb-2">
+          <div className="mt-4 border-t border-[#FBF6EC]/10 pt-4">
+            <p className="mb-2 truncate px-3 font-body text-xs text-[#FBF6EC]/55">
               {session.user.email}
             </p>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-white/40 hover:text-red-400 transition-colors w-full rounded-lg hover:bg-white/5"
+              className="flex w-full cursor-pointer items-center gap-2 rounded-full px-3 py-2.5 font-button text-sm font-semibold text-[#FBF6EC]/65 transition hover:bg-[#FBF6EC]/10 hover:text-red-300"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="h-4 w-4" />
               Sign Out
             </button>
           </div>
@@ -85,40 +88,44 @@ export default function AdminLayout({
       </aside>
 
       {/* Mobile header for admin */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-surface-100/95 backdrop-blur-lg border-b border-red-500/10 flex items-center justify-between px-4">
-        <div className="flex items-center">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center mr-2">
-            <span className="text-xs font-bold text-white">A</span>
+      <div className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center justify-between bg-[#17120E] px-4 lg:hidden">
+        <div className="flex min-w-0 items-center">
+          <div className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FBF6EC]">
+            <span className="font-wordmark text-xs font-extrabold text-[#17120E]">A</span>
           </div>
-          <span className="font-bold text-white text-sm">Admin Portal</span>
+          <span className="truncate font-wordmark text-base font-extrabold tracking-tight text-[#FBF6EC]">
+            Admin Portal
+          </span>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <Link
             href="/dashboard"
-            className="p-2 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/5 transition-all"
+            aria-label="Back to dashboard"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-[#FBF6EC]/65 transition hover:bg-[#FBF6EC]/10 hover:text-[#FBF6EC]"
             title="Back to Dashboard"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="h-4 w-4" />
           </Link>
           {session?.user && (
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="p-2 rounded-lg text-white/40 hover:text-red-400 hover:bg-white/5 transition-all cursor-pointer"
+              aria-label="Sign out"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-[#FBF6EC]/65 transition hover:bg-[#FBF6EC]/10 hover:text-red-300"
               title="Sign Out"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="h-4 w-4" />
             </button>
           )}
         </div>
       </div>
 
-      <main className="flex-1 lg:p-8 p-4 pt-18 pb-24 lg:pb-8 lg:pt-8 overflow-auto animate-fadeIn">
-        <div className="max-w-6xl mx-auto">{children}</div>
+      <main className="min-w-0 flex-1 animate-fadeIn overflow-auto p-4 pb-24 pt-18 lg:p-8 lg:pb-8 lg:pt-8">
+        <div className="mx-auto max-w-6xl">{children}</div>
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 h-16 bg-surface-100/95 backdrop-blur-lg border-t border-red-500/10 flex justify-around items-center px-4 pb-safe shadow-2xl">
+      <nav className="pb-safe fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-[#FBF6EC]/10 bg-[#17120E] px-4 lg:hidden">
         {NAV_ITEMS.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -128,14 +135,15 @@ export default function AdminLayout({
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center w-16 h-12 rounded-xl transition-all ${
+              aria-current={isActive ? "page" : undefined}
+              className={`flex h-12 w-16 flex-col items-center justify-center rounded-2xl transition ${
                 isActive
-                  ? "text-red-400 font-bold"
-                  : "text-white/30 hover:text-white/60"
+                  ? "bg-[#FBF6EC] font-bold text-[#17120E]"
+                  : "text-[#FBF6EC]/60 hover:text-[#FBF6EC]"
               }`}
             >
-              <Icon className="w-5 h-5 mb-0.5" />
-              <span className="text-[10px] tracking-tight">{item.label}</span>
+              <Icon className="mb-0.5 h-5 w-5" />
+              <span className="font-body text-[11px] tracking-tight">{item.label}</span>
             </Link>
           );
         })}

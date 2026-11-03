@@ -15,47 +15,59 @@ export default function AbusePage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Abuse Monitoring</h1>
-        <p className="text-white/40 mt-1">Track rate limits and suspicious activity</p>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="font-wordmark text-3xl font-extrabold tracking-tight text-[#17120E] sm:text-4xl">
+          Abuse monitoring
+        </h1>
+        <p className="mt-1.5 font-body text-[15px] text-[#17120E]/60">
+          Track rate limits and suspicious activity
+        </p>
       </div>
 
       {/* Flagged IPs */}
-      <div className="bg-glass rounded-2xl p-6 mb-6">
-        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <ShieldAlert className="w-5 h-5 text-red-400" />
-          Rate-Limited IPs (Last 24h)
+      <div className="mb-6 rounded-3xl border border-[#17120E]/10 bg-white/70 p-5 shadow-[0_8px_20px_-12px_#17120E55] sm:p-6">
+        <h3 className="mb-4 flex items-center gap-3 font-label text-lg font-bold tracking-tight text-[#17120E]">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-red-500/10">
+            <ShieldAlert className="h-5 w-5 text-red-600" />
+          </span>
+          Rate-limited IPs (last 24h)
         </h3>
         {!abuseData?.flaggedIPs?.length ? (
-          <p className="text-white/30 text-sm py-4 text-center">
+          <p
+            role="status"
+            className="rounded-2xl bg-[#0B6E4F]/10 px-4 py-6 text-center font-body text-sm font-semibold text-[#0B6E4F]"
+          >
             No flagged IPs in the last 24 hours ✓
           </p>
         ) : (
           <>
             {/* Desktop Table View */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="hidden overflow-x-auto sm:block">
+              <table className="w-full font-body text-sm">
                 <thead>
-                  <tr className="border-b border-white/5">
-                    <th className="text-left py-2 px-3 text-white/40 font-medium">IP Hash</th>
-                    <th className="text-right py-2 px-3 text-white/40 font-medium">Requests</th>
-                    <th className="text-left py-2 px-3 text-white/40 font-medium">Last Seen</th>
-                    <th className="text-right py-2 px-3 text-white/40 font-medium">Actions</th>
+                  <tr className="border-b border-[#17120E]/10">
+                    <th className="px-3 py-2.5 text-left font-label text-xs font-semibold text-[#17120E]/55">IP hash</th>
+                    <th className="px-3 py-2.5 text-right font-label text-xs font-semibold text-[#17120E]/55">Requests</th>
+                    <th className="px-3 py-2.5 text-left font-label text-xs font-semibold text-[#17120E]/55">Last seen</th>
+                    <th className="px-3 py-2.5 text-right font-label text-xs font-semibold text-[#17120E]/55">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {abuseData.flaggedIPs.map((ip: any, i: number) => (
-                    <tr key={i} className="border-b border-white/5">
-                      <td className="py-2 px-3 font-mono text-xs text-white/60">
+                    <tr key={i} className="border-b border-[#17120E]/10 transition hover:bg-white">
+                      <td className="px-3 py-2.5 font-mono text-xs text-[#17120E]/70">
                         {ip.hash?.substring(0, 16)}...
                       </td>
-                      <td className="py-2 px-3 text-right text-white/50">{ip.count}</td>
-                      <td className="py-2 px-3 text-white/50">
+                      <td className="px-3 py-2.5 text-right text-[#17120E]/70">{ip.count}</td>
+                      <td className="px-3 py-2.5 text-[#17120E]/70">
                         {new Date(ip.lastSeen).toLocaleString()}
                       </td>
-                      <td className="py-2 px-3 text-right">
-                        <button className="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer">
-                          <Ban className="w-4 h-4" />
+                      <td className="px-3 py-2.5 text-right">
+                        <button
+                          aria-label={`Ban IP ${ip.hash?.substring(0, 16)}`}
+                          className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-[#17120E]/45 transition hover:bg-red-500/10 hover:text-red-600"
+                        >
+                          <Ban className="h-4 w-4" />
                         </button>
                       </td>
                     </tr>
@@ -65,31 +77,34 @@ export default function AbusePage() {
             </div>
 
             {/* Mobile Cards View */}
-            <div className="sm:hidden divide-y divide-white/5">
+            <div className="divide-y divide-[#17120E]/10 sm:hidden">
               {abuseData.flaggedIPs.map((ip: any, i: number) => (
-                <div key={i} className="py-4 space-y-3">
+                <div key={i} className="space-y-3 py-4">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-xs text-red-400 font-semibold bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-lg">
+                    <span className="min-w-0 truncate rounded-full bg-red-500/10 px-3 py-1 font-mono text-xs font-semibold text-red-600">
                       {ip.hash?.substring(0, 12)}...
                     </span>
-                    <button className="p-2 rounded-lg text-white/30 hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer">
-                      <Ban className="w-4 h-4" />
+                    <button
+                      aria-label={`Ban IP ${ip.hash?.substring(0, 12)}`}
+                      className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-[#17120E]/45 transition hover:bg-red-500/10 hover:text-red-600"
+                    >
+                      <Ban className="h-4 w-4" />
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs text-white/50">
+                  <div className="grid grid-cols-2 gap-3 rounded-2xl border border-[#17120E]/10 bg-[#FBF6EC] p-4 font-body text-xs text-[#17120E]/55">
                     <div>
-                      <span className="block text-[9px] uppercase tracking-wider text-white/30 font-bold mb-0.5">
+                      <span className="mb-0.5 block text-xs text-[#17120E]/55">
                         Requests
                       </span>
-                      <span className="text-sm font-semibold text-white">
+                      <span className="font-number text-lg font-extrabold text-[#17120E]">
                         {ip.count}
                       </span>
                     </div>
                     <div>
-                      <span className="block text-[9px] uppercase tracking-wider text-white/30 font-bold mb-0.5">
-                        Last Seen
+                      <span className="mb-0.5 block text-xs text-[#17120E]/55">
+                        Last seen
                       </span>
-                      <span className="text-white/70">
+                      <span className="text-sm font-semibold text-[#17120E]/80">
                         {new Date(ip.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
@@ -102,9 +117,11 @@ export default function AbusePage() {
       </div>
 
       {/* Info */}
-      <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-6">
-        <h4 className="font-medium text-amber-300 mb-2">How abuse detection works</h4>
-        <ul className="text-sm text-white/40 space-y-1 list-disc pl-4">
+      <div className="rounded-3xl border border-[#FF8A1F]/30 bg-[#FF8A1F]/10 p-5 sm:p-6">
+        <h4 className="mb-2 font-label text-base font-bold tracking-tight text-[#17120E]">
+          How abuse detection works
+        </h4>
+        <ul className="list-disc space-y-1.5 pl-4 font-body text-sm leading-relaxed text-[#17120E]/65">
           <li>IPs are hashed using SHA-256 (raw IPs are never stored)</li>
           <li>Rate limiting: 10 requests per 10 seconds per IP hash</li>
           <li>Subscription tier limits: Free (50/mo), Pro (500/mo), Multi-Location (unlimited)</li>
