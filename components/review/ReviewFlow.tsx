@@ -556,6 +556,10 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                 </button>
               </motion.div>
 
+              <motion.p variants={itemVariants} className="text-[12px] text-[#6B7280] -mt-2 mb-4 leading-relaxed">
+                Pick a draft, edit it if you like, then tap the button. We copy it and open Google for you to paste.
+              </motion.p>
+
               <motion.div variants={itemVariants} className="flex flex-col gap-4 mb-8">
                 {reviewLoading ? (
                   <div className="animate-pulse flex flex-col gap-4">
@@ -606,7 +610,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
                             ) : (
                               <>
                                 <Copy className="w-3.5 h-3.5" />
-                                <span>Copy & Post on Google</span>
+                                <span>Copy & Open Google</span>
                               </>
                             )}
                           </button>
@@ -716,25 +720,51 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
               exit={{ scale: 0.9, y: 20 }}
               className="bg-[#FDFBF7] rounded-[24px] shadow-2xl border border-white w-full max-w-sm p-8 text-center"
             >
-              <div className="w-14 h-14 rounded-full bg-[#D4A574]/10 flex items-center justify-center mx-auto mb-5 text-[#D4A574]">
+              <div className="w-12 h-12 rounded-full bg-[#238A4B]/10 flex items-center justify-center mx-auto mb-4 text-[#238A4B]">
                 <Check className="w-6 h-6" />
               </div>
-              <h3 className="font-['Playfair_Display'] text-2xl font-medium text-[#1A1A1A] mb-2">Review Copied!</h3>
-              <p className="text-sm text-[#6B7280] mb-8 leading-relaxed">
-                {googleTabOpened
-                  ? "Your review has been copied and Google Reviews is open in a new tab. Paste your review there and submit it."
-                  : "Your review has been copied. Tap the button below to open Google Reviews, then paste your review and submit it."}
+              <h3 className="font-['Playfair_Display'] text-2xl font-medium text-[#1A1A1A] mb-1">Review copied</h3>
+              <p className="text-[13px] text-[#6B7280] mb-6">
+                {googleTabOpened ? "Google Reviews is open in another tab." : "Two quick steps left."}
               </p>
 
-              <div className="flex flex-col gap-3">
+              {/* Clear, ordered steps (this really is a sequence) */}
+              <ol className="text-left bg-white border border-[#E4E4E7] rounded-2xl divide-y divide-[#F4F4F5] mb-6 overflow-hidden">
+                {(googleTabOpened
+                  ? [
+                      { t: "Go to the Google tab", d: "Tap the review box" },
+                      { t: "Press & hold, then tap Paste", d: "Add your stars and tap Post" },
+                    ]
+                  : [
+                      { t: "Open Google Reviews", d: "Use the button below" },
+                      { t: "Press & hold the review box, tap Paste", d: "Add your stars and tap Post" },
+                    ]
+                ).map((step, i) => (
+                  <li key={i} className="flex items-start gap-3 px-4 py-3.5">
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1A1A1A] text-[12px] font-semibold text-white">
+                      {i + 1}
+                    </span>
+                    <span className="flex flex-col">
+                      <span className="text-[14px] font-medium text-[#1A1A1A] leading-snug">{step.t}</span>
+                      <span className="text-[12px] text-[#6B7280] mt-0.5">{step.d}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+
+              <div className="flex flex-col gap-2">
                 <a
                   href={business?.reviewUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setShowPostPopup(false)}
-                  className="bg-[#1A1A1A] text-white py-3.5 rounded-full text-[14px] font-medium hover:bg-[#2C2C2C] transition-colors shadow-lg shadow-black/10"
+                  className={`py-3.5 rounded-full text-[14px] font-medium transition-colors ${
+                    googleTabOpened
+                      ? "bg-white border border-[#E4E4E7] text-[#1A1A1A] hover:border-[#A1A1AA]"
+                      : "bg-[#1A1A1A] text-white hover:bg-[#2C2C2C] shadow-lg shadow-black/10"
+                  }`}
                 >
-                  Open Google Reviews
+                  {googleTabOpened ? "Open Google again" : "Open Google Reviews"}
                 </a>
                 <button
                   onClick={() => setShowPostPopup(false)}
