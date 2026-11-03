@@ -196,26 +196,37 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     setTimeout(() => setToastMessage(""), 2500);
   };
 
-  const handleCopy = async (index: number) => {
-    const text = reviews[index];
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopySuccess(index);
-      trackEvent("copy", text);
-      setShowPostPopup(true);
-      
-      setTimeout(() => {
-         window.open(business?.reviewUrl, "_blank", "noopener,noreferrer");
-      }, 1500);
-      
-      setTimeout(() => {
-        setCopySuccess((current) => (current === index ? null : current));
-      }, 1500);
-    } catch (err) {
-      console.error("Auto-copy clipboard API failed: ", err);
-      showToast("Failed to copy");
-    }
-  };
+const handleCopy = async (index: number) => {
+  const text = reviews[index];
+
+  // Open Google immediately during the click event
+  const googleTab = window.open(
+    business?.reviewUrl,
+    "_blank"
+  );
+
+  try {
+    await navigator.clipboard.writeText(text);
+
+    setCopySuccess(index);
+    trackEvent("copy", text);
+    setShowPostPopup(true);
+
+    setTimeout(() => {
+      setCopySuccess((current) =>
+        current === index ? null : current
+      );
+    }, 1500);
+
+  } catch (err) {
+    console.error("Clipboard copy failed:", err);
+
+    // If clipboard fails, don't leave an unnecessary tab open
+    googleTab?.close();
+
+    showToast("Failed to copy. Please try again.");
+  }
+};
 
   const handleEditReview = async (index: number, text: string) => {
     const updated = [...reviews];
