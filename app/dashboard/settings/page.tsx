@@ -6,6 +6,23 @@ import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Save, CreditCard, AlertTriangle, Globe, Sparkles, Building, Check, ArrowRight } from "lucide-react";
 
+// text-base on mobile prevents iOS zoom-on-focus; sm:text-sm keeps desktop compact
+const INPUT =
+  "w-full rounded-2xl border border-[#17120E]/15 bg-white px-4 py-3 font-body text-base text-[#17120E] placeholder:text-[#17120E]/35 transition focus:border-[#FF8A1F] focus:outline-none focus:ring-2 focus:ring-[#FF8A1F]/30 sm:py-2.5 sm:text-sm";
+const LABEL = "mb-1.5 block font-label text-sm font-semibold text-[#17120E]";
+const CARD =
+  "rounded-3xl border border-[#17120E]/10 bg-white/70 p-5 shadow-[0_8px_20px_-12px_#17120E55] sm:p-6";
+const CARD_TITLE = "font-label text-lg font-bold tracking-tight text-[#17120E]";
+const SAVE_BTN =
+  "flex w-full items-center justify-center gap-2 rounded-full bg-[#FF8A1F] px-6 py-3 font-button text-sm font-semibold text-[#17120E] shadow-[0_8px_20px_-8px_#FF8A1F] transition hover:bg-[#ff9a3d] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-2.5";
+
+const pill = (selected: boolean) =>
+  `rounded-full border px-4 py-2.5 font-button text-sm font-semibold transition sm:py-2 ${
+    selected
+      ? "border-[#17120E] bg-[#17120E] text-[#FBF6EC] shadow-[0_8px_20px_-8px_#17120E99]"
+      : "border-[#17120E]/15 bg-white text-[#17120E]/70 hover:border-[#17120E]/40 hover:text-[#17120E]"
+  }`;
+
 export default function SettingsPage() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
@@ -82,13 +99,20 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="text-white/40 mt-1">Manage your business profile, AI training context, and billing</p>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="font-wordmark text-3xl font-extrabold tracking-tight text-[#17120E] sm:text-4xl">
+          Settings
+        </h1>
+        <p className="mt-1.5 font-body text-[15px] text-[#17120E]/60">
+          Manage your business profile, AI training context, and billing
+        </p>
       </div>
 
       {/* Tabs Menu */}
-      <div className="flex gap-2 mb-6 border-b border-white/5 pb-px">
+      <div
+        className="mb-6 inline-flex max-w-full overflow-x-auto rounded-full border border-[#17120E]/10 bg-[#17120E]/[0.06] p-1"
+        role="tablist"
+      >
         {[
           { id: "profile", label: "Business Profile", icon: Building },
           { id: "ai", label: "AI Training & Context", icon: Sparkles },
@@ -98,14 +122,16 @@ export default function SettingsPage() {
           return (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={isActive}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold transition-all relative border-b-2 -mb-0.5 ${
-                isActive 
-                  ? "text-violet-400 border-violet-500" 
-                  : "text-white/40 border-transparent hover:text-white/70"
+              className={`flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 font-button text-sm font-semibold transition-all sm:py-2 ${
+                isActive
+                  ? "bg-[#17120E] text-[#FBF6EC] shadow-[0_8px_20px_-8px_#17120E99]"
+                  : "text-[#17120E]/60 hover:bg-[#17120E]/8 hover:text-[#17120E]"
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="hidden h-4 w-4 sm:block" />
               {tab.label}
             </button>
           );
@@ -123,40 +149,44 @@ export default function SettingsPage() {
             className="space-y-6"
           >
             {/* Business Profile */}
-            <div className="bg-glass rounded-2xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Business Details</h3>
-              <div className="space-y-4 max-w-md">
+            <div className={CARD}>
+              <h3 className={`${CARD_TITLE} mb-4`}>Business Details</h3>
+              <div className="max-w-md space-y-4">
                 <div>
-                  <label className="block text-sm text-white/50 mb-1">Business Name</label>
+                  <label htmlFor="s-name" className={LABEL}>Business Name</label>
                   <input
+                    id="s-name"
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                    className={INPUT}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/50 mb-1">Google Place ID</label>
+                  <label htmlFor="s-place" className={LABEL}>Google Place ID</label>
                   <input
+                    id="s-place"
                     type="text"
                     value={form.googlePlaceId}
                     onChange={(e) => setForm({ ...form, googlePlaceId: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                    className={INPUT}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/50 mb-1">Phone Number</label>
+                  <label htmlFor="s-phone" className={LABEL}>Phone Number</label>
                   <input
+                    id="s-phone"
                     type="text"
+                    inputMode="tel"
                     placeholder="+1 (555) 000-0000"
                     value={form.phoneNumber}
                     onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                    className={INPUT}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-white/50 mb-1">Default Language</label>
-                  <div className="flex gap-2">
+                  <p className={LABEL}>Default Language</p>
+                  <div className="flex flex-wrap gap-2">
                     {[
                       { value: "en", label: "English" },
                       { value: "hi", label: "Hinglish" },
@@ -164,63 +194,61 @@ export default function SettingsPage() {
                       <button
                         key={lang.value}
                         type="button"
+                        aria-pressed={form.defaultLanguage === lang.value}
                         onClick={() => setForm({ ...form, defaultLanguage: lang.value as "en" | "hi" })}
-                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                          form.defaultLanguage === lang.value
-                            ? "bg-violet-500/20 text-violet-300 border border-violet-400/40"
-                            : "bg-white/5 text-white/40 border border-white/10"
-                        }`}
+                        className={pill(form.defaultLanguage === lang.value)}
                       >
-                        <Globe className="w-4 h-4 inline mr-1" />
+                        <Globe className="mr-1.5 inline h-4 w-4" />
                         {lang.label}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => saveMutation.mutate(form)}
-                  disabled={saveMutation.isPending}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold disabled:opacity-50 transition-all shadow-md shadow-violet-500/15"
-                >
-                  <Save className="w-4 h-4" />
-                  {saveMutation.isPending ? "Saving..." : "Save Changes"}
-                </button>
-                {saveMutation.isSuccess && (
-                  <p className="text-sm text-emerald-400 mt-2">✓ Saved successfully</p>
-                )}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => saveMutation.mutate(form)}
+                    disabled={saveMutation.isPending}
+                    className={SAVE_BTN}
+                  >
+                    <Save className="h-4 w-4" />
+                    {saveMutation.isPending ? "Saving..." : "Save Changes"}
+                  </button>
+                  {saveMutation.isSuccess && (
+                    <p role="status" className="mt-3 font-body text-sm font-semibold text-[#0B6E4F]">✓ Saved successfully</p>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Subscription */}
-            <div className="bg-glass rounded-2xl p-6 border border-white/5 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-2xl -z-10" />
-              <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-violet-400" />
+            <div className="rounded-3xl bg-[#17120E] p-5 text-[#FBF6EC] shadow-[0_16px_40px_-20px_#17120E99] sm:p-6">
+              <h3 className="mb-3 flex items-center gap-2 font-label text-lg font-bold tracking-tight">
+                <CreditCard className="h-5 w-5 text-[#FF8A1F]" />
                 Subscription & Billing
               </h3>
-              <p className="text-sm text-white/60 mb-4">
-                Current plan:{" "}
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-500/20 text-violet-300 capitalize ml-1.5 border border-violet-500/30">
+              <p className="mb-4 flex flex-wrap items-center gap-2 font-body text-sm text-[#FBF6EC]/70">
+                Current plan:
+                <span className="rounded-full bg-[#FF8A1F] px-3 py-0.5 text-xs font-bold capitalize text-[#17120E]">
                   {session?.user?.subscriptionTier || "Free"}
                 </span>
               </p>
-              <div className="rounded-xl bg-white/[0.02] border border-white/5 p-4 text-sm text-white/60 leading-relaxed max-w-xl">
-                💡 <span className="font-semibold text-white">Offline Billing Model:</span> Subscription tiers and limits are managed offline. To upgrade your plan, request additional location slots, or renew your usage credits, please contact our support team directly at <a href="mailto:support@reviewflow.app" className="text-violet-400 hover:text-violet-300 transition-colors font-medium underline decoration-violet-500/40">support@reviewflow.app</a>.
+              <div className="max-w-xl rounded-2xl border border-[#FBF6EC]/10 bg-[#FBF6EC]/[0.06] p-4 font-body text-sm leading-relaxed text-[#FBF6EC]/75">
+                💡 <span className="font-semibold text-[#FBF6EC]">Offline Billing Model:</span> Subscription tiers and limits are managed offline. To upgrade your plan, request additional location slots, or renew your usage credits, please contact our support team directly at <a href="mailto:support@reviewflow.app" className="break-all font-semibold text-[#FF8A1F] underline underline-offset-4 transition-colors hover:text-[#ffb066]">support@reviewflow.app</a>.
               </div>
             </div>
 
             {/* Danger Zone */}
-            <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6">
-              <h3 className="text-lg font-semibold text-red-400 flex items-center gap-2 mb-2">
-                <AlertTriangle className="w-5 h-5" />
+            <div className="rounded-3xl border border-red-500/25 bg-red-500/[0.06] p-5 sm:p-6">
+              <h3 className="mb-2 flex items-center gap-2 font-label text-lg font-bold tracking-tight text-red-700">
+                <AlertTriangle className="h-5 w-5" />
                 Danger Zone
               </h3>
-              <p className="text-sm text-white/40 mb-4">
+              <p className="mb-4 font-body text-sm text-[#17120E]/65">
                 Deleting your account will deactivate all QR codes and remove your data. This action cannot be undone.
               </p>
-              <button type="button" className="px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-all border border-red-500/30">
+              <button type="button" className="w-full rounded-full border border-red-500/40 bg-white px-6 py-3 font-button text-sm font-semibold text-red-600 transition hover:bg-red-600 hover:text-white sm:w-auto sm:py-2.5">
                 Delete Account
               </button>
             </div>
@@ -235,62 +263,66 @@ export default function SettingsPage() {
             className="space-y-6"
           >
             {/* AI Onboarding Customization context form */}
-            <div className="bg-glass rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
+            <div className={CARD}>
+              <div className="mb-6 flex flex-col gap-3 border-b border-[#17120E]/10 pb-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-white">AI Training Parameters</h3>
-                  <p className="text-xs text-white/40 mt-1">Configure parameters that train reviews generated for your business</p>
+                  <h3 className={CARD_TITLE}>AI Training Parameters</h3>
+                  <p className="mt-1 font-body text-xs text-[#17120E]/55 sm:text-sm">Configure parameters that train reviews generated for your business</p>
                 </div>
-                <div className="px-2.5 py-1 rounded-lg bg-violet-500/10 text-violet-300 border border-violet-500/20 text-[10px] uppercase font-bold tracking-wider flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
+                <div className="flex w-fit items-center gap-1.5 rounded-full bg-[#0B6E4F]/10 px-3 py-1.5 font-label text-xs font-bold text-[#0B6E4F]">
+                  <Sparkles className="h-3.5 w-3.5" />
                   Agent Active
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm text-white/70 mb-1 font-medium">What makes your business unique?</label>
+                    <label htmlFor="a-unique" className={LABEL}>What makes your business unique?</label>
                     <textarea
+                      id="a-unique"
                       rows={3}
                       value={form.onboardingAnswers.uniqueFeatures}
                       onChange={(e) => handleAnswersChange("uniqueFeatures", e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/40 resize-none"
+                      className={`${INPUT} resize-none`}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-white/70 mb-1 font-medium">Who is your typical customer?</label>
+                    <label htmlFor="a-customer" className={LABEL}>Who is your typical customer?</label>
                     <input
+                      id="a-customer"
                       type="text"
                       value={form.onboardingAnswers.targetCustomer}
                       onChange={(e) => handleAnswersChange("targetCustomer", e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                      className={INPUT}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-white/70 mb-1 font-medium">List your top 3 most popular products or services</label>
+                    <label htmlFor="a-products" className={LABEL}>List your top 3 most popular products or services</label>
                     <input
+                      id="a-products"
                       type="text"
                       value={form.onboardingAnswers.popularProducts}
                       onChange={(e) => handleAnswersChange("popularProducts", e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                      className={INPUT}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm text-white/70 mb-1 font-medium">What do customers compliment you on?</label>
+                    <label htmlFor="a-compliments" className={LABEL}>What do customers compliment you on?</label>
                     <textarea
+                      id="a-compliments"
                       rows={3}
                       value={form.onboardingAnswers.compliments}
                       onChange={(e) => handleAnswersChange("compliments", e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/40 resize-none"
+                      className={`${INPUT} resize-none`}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-white/70 mb-1.5 font-medium">Preferred review tone</label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <p className={LABEL}>Preferred review tone</p>
+                    <div className="flex flex-wrap gap-2">
                       {[
                         { value: "warm", label: "Warm" },
                         { value: "professional", label: "Professional" },
@@ -299,12 +331,9 @@ export default function SettingsPage() {
                         <button
                           key={t.value}
                           type="button"
+                          aria-pressed={form.onboardingAnswers.reviewTone === t.value}
                           onClick={() => handleAnswersChange("reviewTone", t.value)}
-                          className={`px-3 py-2 rounded-xl text-xs font-semibold border text-center transition-all ${
-                            form.onboardingAnswers.reviewTone === t.value
-                              ? "bg-violet-500/20 text-violet-300 border-violet-400/40 shadow-md shadow-violet-500/5"
-                              : "bg-white/5 text-white/40 border-white/10 hover:border-white/20"
-                          }`}
+                          className={pill(form.onboardingAnswers.reviewTone === t.value)}
                         >
                           {t.label}
                         </button>
@@ -312,14 +341,15 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm text-white/70 mb-1 font-medium">
-                      Keywords or phrases <span className="text-white/25">(Optional)</span>
+                    <label htmlFor="a-keywords" className={LABEL}>
+                      Keywords or phrases <span className="font-normal text-[#17120E]/45">(Optional)</span>
                     </label>
                     <input
+                      id="a-keywords"
                       type="text"
                       value={form.onboardingAnswers.keywords}
                       onChange={(e) => handleAnswersChange("keywords", e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                      className={INPUT}
                     />
                   </div>
                 </div>
@@ -327,9 +357,9 @@ export default function SettingsPage() {
 
               {/* Display compiled Context string preview */}
               {business?.aiContextPrompt && (
-                <div className="mb-6 p-4 rounded-2xl bg-violet-950/15 border border-violet-500/10 text-xs text-white/60 leading-relaxed">
-                  <p className="font-bold text-violet-300 mb-1.5 uppercase tracking-wider text-[10px] flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5" />
+                <div className="mb-6 break-words rounded-2xl border border-[#FF8A1F]/25 bg-[#FF8A1F]/[0.08] p-4 font-body text-xs leading-relaxed text-[#17120E]/70">
+                  <p className="mb-1.5 flex items-center gap-1.5 font-label text-xs font-bold text-[#17120E]">
+                    <Sparkles className="h-3.5 w-3.5 text-[#FF8A1F]" />
                     Pre-Compiled AI Agent Prompt Context (Cached)
                   </p>
                   "{business.aiContextPrompt}"
@@ -340,13 +370,13 @@ export default function SettingsPage() {
                 type="button"
                 onClick={() => saveMutation.mutate(form)}
                 disabled={saveMutation.isPending}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold disabled:opacity-50 transition-all shadow-md shadow-violet-500/15"
+                className={SAVE_BTN}
               >
-                <Save className="w-4 h-4" />
+                <Save className="h-4 w-4" />
                 {saveMutation.isPending ? "Training Agent..." : "Update AI Context"}
               </button>
               {saveMutation.isSuccess && (
-                <p className="text-sm text-emerald-400 mt-2">✓ AI Context trained successfully</p>
+                <p role="status" className="mt-3 font-body text-sm font-semibold text-[#0B6E4F]">✓ AI Context trained successfully</p>
               )}
             </div>
           </motion.div>

@@ -43,6 +43,13 @@ interface ICustomTag {
 // Preset Emojis for easy clicking
 const PRESET_EMOJIS = ["✨", "🍔", "💁", "🏠", "🚗", "🏥", "💈", "🌟", "💼", "🍕", "☕", "💅", "🛠️", "📦", "🛋️", "🥗"];
 
+// text-base on mobile prevents iOS zoom-on-focus; sm:text-sm keeps desktop compact
+const INPUT =
+  "w-full rounded-2xl border border-[#17120E]/15 bg-white px-4 py-3 font-body text-base text-[#17120E] placeholder:text-[#17120E]/35 transition focus:border-[#FF8A1F] focus:outline-none focus:ring-2 focus:ring-[#FF8A1F]/30 sm:py-2.5 sm:text-sm";
+const LABEL = "mb-1.5 block font-label text-sm font-semibold text-[#17120E]";
+const CARD =
+  "rounded-3xl border border-[#17120E]/10 bg-white/70 p-5 shadow-[0_8px_20px_-12px_#17120E55] sm:p-6";
+
 export default function TagManagerPage() {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
@@ -206,68 +213,76 @@ export default function TagManagerPage() {
 
   if (settingsLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
-        <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
-        <p className="text-white/40 text-sm animate-pulse">Loading custom tags...</p>
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-[#FF8A1F]" />
+        <p className="animate-pulse font-body text-sm text-[#17120E]/55">Loading custom tags...</p>
       </div>
     );
   }
 
   return (
     <div className="max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">Custom Tags Manager</h1>
-        <p className="text-white/40 mt-1">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="font-wordmark text-3xl font-extrabold tracking-tight text-[#17120E] sm:text-4xl">
+          Custom Tags Manager
+        </h1>
+        <p className="mt-1.5 max-w-2xl font-body text-[15px] text-[#17120E]/60">
           Customize what aspects customers comment on (e.g., "Wait Time", "Value", "Quality"). Max 8 active tags.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         
         {/* Left Side: Tag Form */}
-        <div className="md:col-span-1 bg-glass rounded-2xl p-6 border border-white/5 h-fit">
-          <h3 className="text-md font-semibold text-white mb-4 flex items-center gap-2">
-            <Tag className="w-4 h-4 text-violet-400" />
+        <div className={`${CARD} h-fit md:col-span-1`}>
+          <h3 className="mb-4 flex items-center gap-2 font-label text-base font-bold tracking-tight text-[#17120E]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#17120E]">
+              <Tag className="h-4 w-4 text-[#FF8A1F]" />
+            </span>
             {editingIndex === null ? "Add Custom Tag" : "Edit Tag"}
           </h3>
 
           <form onSubmit={handleAddOrUpdate} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5">
+              <label htmlFor="tag-name" className={LABEL}>
                 Tag Name
               </label>
               <input
+                id="tag-name"
                 type="text"
                 placeholder="e.g. Taste, Service, Hygiene"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/40 transition-all"
+                className={INPUT}
                 maxLength={25}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-white/50 uppercase tracking-wider mb-1.5 flex justify-between">
+              <label htmlFor="tag-emoji" className={`${LABEL} flex items-center justify-between`}>
                 <span>Select Emoji</span>
                 <span className="text-xl">{form.emoji}</span>
               </label>
               <input
+                id="tag-emoji"
                 type="text"
                 placeholder="Type or click preset below"
                 value={form.emoji}
                 onChange={(e) => setForm({ ...form, emoji: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/40 transition-all mb-3 text-center text-lg animate-fade-in"
+                className={`${INPUT} mb-3 text-center`}
                 maxLength={4}
               />
-              <div className="grid grid-cols-6 gap-1.5 bg-white/[0.02] border border-white/5 rounded-xl p-2.5">
+              <div className="grid grid-cols-8 gap-1 rounded-2xl border border-[#17120E]/10 bg-[#FBF6EC] p-2 md:grid-cols-6">
                 {PRESET_EMOJIS.map((emoji) => (
                   <button
                     key={emoji}
                     type="button"
                     onClick={() => setForm({ ...form, emoji })}
-                    className={`text-lg p-1.5 hover:bg-white/10 rounded-lg transition-all cursor-pointer ${
-                      form.emoji === emoji ? "bg-white/10 scale-110" : ""
+                    aria-label={`Use ${emoji}`}
+                    aria-pressed={form.emoji === emoji}
+                    className={`flex aspect-square cursor-pointer items-center justify-center rounded-xl text-lg transition-all hover:bg-[#17120E]/8 ${
+                      form.emoji === emoji ? "bg-white ring-2 ring-[#FF8A1F]" : ""
                     }`}
                   >
                     {emoji}
@@ -276,21 +291,22 @@ export default function TagManagerPage() {
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-1">
               <button
                 type="submit"
-                className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-all shadow-md shadow-violet-500/15 cursor-pointer"
+                className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full bg-[#17120E] px-5 py-3 font-button text-sm font-semibold text-[#FBF6EC] shadow-[0_8px_20px_-8px_#17120E99] transition hover:bg-[#0B6E4F] sm:py-2.5"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="h-4 w-4" />
                 {editingIndex === null ? "Add Tag" : "Update Tag"}
               </button>
               {editingIndex !== null && (
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 text-xs font-medium border border-white/10 transition-all cursor-pointer"
+                  aria-label="Cancel editing"
+                  className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full border border-[#17120E]/15 bg-white text-[#17120E]/70 transition hover:bg-[#17120E]/8 sm:h-10 sm:w-10"
                 >
-                  <Undo2 className="w-4 h-4" />
+                  <Undo2 className="h-4 w-4" />
                 </button>
               )}
             </div>
@@ -298,15 +314,15 @@ export default function TagManagerPage() {
         </div>
 
         {/* Right Side: Sortable Active Tags List */}
-        <div className="md:col-span-2 bg-glass rounded-2xl p-6 border border-white/5 flex flex-col min-h-[300px]">
-          <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+        <div className={`${CARD} flex min-h-[300px] flex-col md:col-span-2`}>
+          <div className="mb-5 flex flex-col gap-3 border-b border-[#17120E]/10 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-md font-semibold text-white">Active Tags List</h3>
-              <p className="text-xs text-white/40 mt-0.5">
+              <h3 className="font-label text-base font-bold tracking-tight text-[#17120E]">Active Tags List</h3>
+              <p className="mt-0.5 font-body text-xs text-[#17120E]/55 sm:text-sm">
                 Drag handles to reorder. Custom tags will show on review page.
               </p>
             </div>
-            <div className="text-xs text-white/50 font-semibold bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+            <div className="w-fit shrink-0 rounded-full bg-[#17120E] px-3.5 py-1.5 font-label text-xs font-bold text-[#FBF6EC]">
               {activeTags.length} / 8 active
             </div>
           </div>
@@ -320,7 +336,7 @@ export default function TagManagerPage() {
               items={activeTags.map((t) => t.name)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="space-y-2 flex-1">
+              <div className="flex-1 space-y-2">
                 {activeTags.map((tag, idx) => (
                   <SortableTagItem
                     key={tag.name}
@@ -334,10 +350,12 @@ export default function TagManagerPage() {
                 ))}
 
                 {activeTags.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-12 text-center text-white/30 border border-dashed border-white/10 rounded-2xl">
-                    <HelpCircle className="w-8 h-8 mb-2 opacity-50" />
-                    <p className="text-sm font-semibold">No custom tags set up yet</p>
-                    <p className="text-xs text-white/20 mt-1 max-w-xs">
+                  <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[#17120E]/20 px-4 py-12 text-center">
+                    <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FF8A1F]/15">
+                      <HelpCircle className="h-6 w-6 text-[#FF8A1F]" />
+                    </span>
+                    <p className="font-label text-sm font-bold text-[#17120E]">No custom tags set up yet</p>
+                    <p className="mt-1 max-w-xs font-body text-xs text-[#17120E]/55">
                       Default tags (Food, Service, Ambience, etc.) will fallback on review page. Try creating one!
                     </p>
                   </div>
@@ -348,31 +366,31 @@ export default function TagManagerPage() {
 
           {/* Action Footer */}
           {tags.length > 0 && (
-            <div className="mt-6 pt-4 border-t border-white/5 flex justify-end items-center gap-4">
+            <div className="mt-6 flex flex-col gap-3 border-t border-[#17120E]/10 pt-4 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
               {saveMutation.isError && (
-                <p className="text-xs text-red-400">
+                <p role="alert" className="font-body text-xs font-semibold text-red-600">
                   ❌ {saveMutation.error?.message || "Failed to save"}
                 </p>
               )}
               {saveMutation.isSuccess && (
-                <p className="text-xs text-emerald-400 flex items-center gap-1 animate-pulse">
-                  <Check className="w-3.5 h-3.5" /> Tags saved successfully
+                <p role="status" className="flex items-center gap-1 font-body text-xs font-semibold text-[#0B6E4F]">
+                  <Check className="h-3.5 w-3.5" /> Tags saved successfully
                 </p>
               )}
               <button
                 type="button"
                 onClick={handleSaveAll}
                 disabled={saveMutation.isPending}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white text-xs font-bold disabled:opacity-50 transition-all shadow-lg shadow-violet-500/25 cursor-pointer"
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-[#FF8A1F] px-6 py-3 font-button text-sm font-semibold text-[#17120E] shadow-[0_8px_20px_-8px_#FF8A1F] transition hover:bg-[#ff9a3d] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-2.5"
               >
                 {saveMutation.isPending ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Saving...
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4" />
+                    <Save className="h-4 w-4" />
                     Save Active Tags
                   </>
                 )}
@@ -421,42 +439,47 @@ function SortableTagItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center justify-between p-3.5 bg-white/5 border rounded-2xl hover:bg-white/[0.08] transition-all ${
-        isEditing ? "border-violet-500/50 bg-violet-950/5" : "border-white/5"
+      className={`flex items-center justify-between gap-2 rounded-2xl border bg-white p-2.5 transition-all hover:bg-white sm:p-3 ${
+        isEditing
+          ? "border-[#FF8A1F] ring-2 ring-[#FF8A1F]/25"
+          : "border-[#17120E]/10 hover:border-[#17120E]/25"
       }`}
     >
-      <div className="flex items-center gap-3">
-        {/* Drag handle */}
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        {/* Drag handle: touch-none lets a finger drag the row instead of scrolling the page */}
         <button
           type="button"
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-white/30 hover:text-white/60 p-1 rounded-lg hover:bg-white/5 transition-all"
+          aria-label={`Reorder ${tag.name}`}
+          className="flex h-10 w-10 shrink-0 cursor-grab touch-none items-center justify-center rounded-full text-[#17120E]/40 transition hover:bg-[#17120E]/8 hover:text-[#17120E] active:cursor-grabbing"
         >
-          <GripVertical className="w-4 h-4" />
+          <GripVertical className="h-4 w-4" />
         </button>
-        <span className="text-xl w-6 h-6 flex items-center justify-center bg-white/5 rounded-lg border border-white/5 shadow-inner">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#FBF6EC] text-xl">
           {tag.emoji || "✨"}
         </span>
-        <span className="text-sm font-semibold text-white">{tag.name}</span>
+        <span className="truncate font-label text-sm font-bold text-[#17120E]">{tag.name}</span>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
         <button
           type="button"
           onClick={onEdit}
-          className="p-2 text-white/40 hover:text-violet-300 hover:bg-violet-500/10 rounded-xl transition-all cursor-pointer"
+          aria-label={`Edit ${tag.name}`}
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-[#17120E]/45 transition hover:bg-[#17120E] hover:text-[#FBF6EC]"
           title="Edit tag name & emoji"
         >
-          <Edit2 className="w-3.5 h-3.5" />
+          <Edit2 className="h-4 w-4" />
         </button>
         <button
           type="button"
           onClick={onDelete}
-          className="p-2 text-white/40 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all cursor-pointer"
+          aria-label={`Remove ${tag.name}`}
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-[#17120E]/45 transition hover:bg-red-500/10 hover:text-red-600"
           title="Remove tag"
         >
-          <Trash2 className="w-3.5 h-3.5" />
+          <Trash2 className="h-4 w-4" />
         </button>
       </div>
     </div>
