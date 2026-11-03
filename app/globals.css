@@ -129,7 +129,7 @@
 }
 
 
-/* ---- Brand Theme (Print-Inspired Neo-Brutalist Palette) ---- */
+/* ---- Brand Theme (ReviewFlow: cream, ink, orange, green) ---- */
 .reviewflow-theme {
   --paper: #FBF6EC;
   --paper-card: #FFFFFF;
@@ -137,6 +137,9 @@
   --ink: #17120E;
   --crimson: #B0102F;
   --lime: #C8F04D;
+  /* New brand accents used by the Tailwind arbitrary values in the revamped pages */
+  --orange: #FF8A1F;
+  --green: #0B6E4F;
   min-height: 100dvh;
   background-color: var(--paper);
   color: var(--ink);
@@ -165,16 +168,37 @@
   font-family: 'Bricolage Grotesque', sans-serif !important;
 }
 
-.reviewflow-theme :where(h1, h2) {
-  color: inherit;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-}
+/*
+  Default weights/spacing for headings, buttons and labels.
+  Kept in @layer base so Tailwind utilities (font-extrabold, tracking-tight, ...)
+  on the element still win.
+*/
+@layer base {
+  .reviewflow-theme :where(h1, h2) {
+    color: inherit;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
 
-.reviewflow-theme :where(h3) {
-  color: inherit;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  .reviewflow-theme :where(h3) {
+    color: inherit;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .reviewflow-theme :where(button, .btn) {
+    font-family: 'Instrument Sans', system-ui, sans-serif;
+    font-weight: 600;
+  }
+
+  .reviewflow-theme :where(label, .label) {
+    font-family: 'Instrument Sans', system-ui, sans-serif;
+    font-weight: 600;
+  }
+
+  .reviewflow-theme :where(p, span, li, a, div:not([class*="font-headline"])) {
+    font-family: 'Instrument Sans', system-ui, sans-serif;
+  }
 }
 
 .font-wordmark,
@@ -198,16 +222,14 @@
   font-weight: 800 !important;
 }
 
-.font-body,
-.reviewflow-theme :where(p, span, li, a, div:not([class*="font-headline"])) {
+.font-body {
   font-family: 'Instrument Sans', system-ui, sans-serif;
 }
 
 .font-button,
 .landing-button,
 .landing-nav-cta,
-.landing-plan-cta,
-.reviewflow-theme :where(button, .btn) {
+.landing-plan-cta {
   font-family: 'Instrument Sans', system-ui, sans-serif;
   font-weight: 600;
 }
@@ -219,24 +241,30 @@
 }
 
 .font-label,
-.landing-control-label,
-.reviewflow-theme :where(label, .label) {
+.landing-control-label {
   font-family: 'Instrument Sans', system-ui, sans-serif;
   font-weight: 600;
 }
 
-/* Base interactive elements */
-.reviewflow-theme :where(input, textarea, select) {
-  font-family: 'Instrument Sans', system-ui, sans-serif;
-  background-color: var(--paper-card);
-  color: var(--ink);
-  border: 2px solid var(--ink);
-}
+/*
+  Base interactive elements.
+  In @layer base so Tailwind utilities on an input (border-red-500, rounded-2xl,
+  focus:ring-*, etc.) override these defaults. Inputs with no classes still get
+  a hairline border and an orange focus ring.
+*/
+@layer base {
+  .reviewflow-theme :where(input, textarea, select) {
+    font-family: 'Instrument Sans', system-ui, sans-serif;
+    background-color: var(--paper-card);
+    color: var(--ink);
+    border: 1px solid rgb(23 18 14 / 0.15);
+  }
 
-.reviewflow-theme :where(input:focus, textarea:focus, select:focus) {
-  outline: none;
-  border-color: var(--crimson);
-  box-shadow: 2px 2px 0 var(--crimson);
+  .reviewflow-theme :where(input:focus, textarea:focus, select:focus) {
+    outline: none;
+    border-color: #FF8A1F;
+    box-shadow: 0 0 0 3px rgb(255 138 31 / 0.3);
+  }
 }
 
 /* ---- Navbar ---- */
