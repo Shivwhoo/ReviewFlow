@@ -70,6 +70,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [userEdited, setUserEdited] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [showPostPopup, setShowPostPopup] = useState(false);
+  const [googleTabOpened, setGoogleTabOpened] = useState(false);
   const [isTagsOpen, setIsTagsOpen] = useState(false);
   
   // Emotive Feedback replacing specific text detail
@@ -79,6 +80,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   const [animatingStar, setAnimatingStar] = useState<number | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [debouncedRating, setDebouncedRating] = useState(0);
   const [debouncedTags, setDebouncedTags] = useState<string[]>([]);
   const [debouncedTone, setDebouncedTone] = useState<Tone>("casual");
   const [debouncedUserNotes, setDebouncedUserNotes] = useState("");
@@ -88,6 +90,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
+      setDebouncedRating(rating);
       setDebouncedTags(tags);
       setDebouncedTone(tone);
       setDebouncedUserNotes(emotiveFeedback);
@@ -97,7 +100,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [tags, tone, emotiveFeedback, language, length]);
+  }, [rating, tags, tone, emotiveFeedback, language, length]);
 
   const { data: business, isLoading: businessLoading, error: businessError } = useQuery<BusinessData>({
     queryKey: ["business-by-qr", qrId],
@@ -127,7 +130,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     queryKey: [
       "generate-review",
       business?.businessId,
-      rating,
+      debouncedRating,
       debouncedTags,
       debouncedTone,
       debouncedUserNotes,
@@ -140,7 +143,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           businessId: business!.businessId,
-          rating,
+          rating: debouncedRating,
           tags: debouncedTags,
           tone: debouncedTone,
           userNotes: debouncedUserNotes,
@@ -151,7 +154,7 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
       if (!res.ok) throw new Error("Failed to generate reviews");
       return res.json();
     },
-    enabled: !!rating && !!business?.businessId,
+    enabled: !!debouncedRating && !!business?.businessId,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -164,8 +167,9 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
   }, [reviewData]);
 
   const trackEvent = useCallback(
-    async (event: "copy" | "google", textToTrack: string) => {
+    async (textToTrack: string, googleOpened: boolean) => {
       if (!business) return;
+
       try {
         await fetch("/api/review/track", {
           method: "POST",
@@ -179,13 +183,14 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
             tone,
             reviewGenerated: textToTrack,
             userEdited,
-            ...(event === "copy"
-              ? { copiedAt: new Date().toISOString() }
-              : { googleOpenedAt: new Date().toISOString() }),
+            copiedAt: new Date().toISOString(),
+            ...(googleOpened
+              ? { googleOpenedAt: new Date().toISOString() }
+              : {}),
           }),
         });
       } catch {
-        // Silently fail tracking
+        // Tracking should never interrupt the customer's review flow.
       }
     },
     [business, qrId, rating, tags, tone, userEdited]
@@ -196,37 +201,42 @@ export default function ReviewFlowClient({ qrId }: { qrId: string }) {
     setTimeout(() => setToastMessage(""), 2500);
   };
 
-const handleCopy = async (index: number) => {
-  const text = reviews[index];
+  const handleCopy = async (index: number) => {
+    const text = reviews[index];
 
-  // Open Google immediately during the click event
-  const googleTab = window.open(
-    business?.reviewUrl,
-    "_blank"
-  );
+    if (!text || !business?.reviewUrl) {
+      showToast("Review link is unavailable");
+      return;
+    }
 
-  try {
-    await navigator.clipboard.writeText(text);
+    // Open the tab synchronously inside the click handler so popup blockers
+    // are less likely to block it. The modal link remains a manual fallback.
+    const googleTab = window.open(business.reviewUrl, "_blank");
+    if (googleTab) googleTab.opener = null;
+    const didOpenGoogle = Boolean(googleTab);
 
-    setCopySuccess(index);
-    trackEvent("copy", text);
-    setShowPostPopup(true);
+    try {
+      await navigator.clipboard.writeText(text);
 
-    setTimeout(() => {
-      setCopySuccess((current) =>
-        current === index ? null : current
-      );
-    }, 1500);
+      setCopySuccess(index);
+      setGoogleTabOpened(didOpenGoogle);
+      setShowPostPopup(true);
 
-  } catch (err) {
-    console.error("Clipboard copy failed:", err);
+      // One tracking request records the copy and, when applicable, Google open.
+      void trackEvent(text, didOpenGoogle);
 
-    // If clipboard fails, don't leave an unnecessary tab open
-    googleTab?.close();
+      setTimeout(() => {
+        setCopySuccess((current) => (current === index ? null : current));
+      }, 1500);
+    } catch (err) {
+      console.error("Clipboard copy failed:", err);
 
-    showToast("Failed to copy. Please try again.");
-  }
-};
+      // Avoid leaving Google open when the review was not copied.
+      googleTab?.close();
+      setGoogleTabOpened(false);
+      showToast("Failed to copy. Please try again.");
+    }
+  };
 
   const handleEditReview = async (index: number, text: string) => {
     const updated = [...reviews];
@@ -640,7 +650,9 @@ const handleCopy = async (index: number) => {
               </div>
               <h3 className="font-['Playfair_Display'] text-2xl font-medium text-[#1A1A1A] mb-2">Review Copied!</h3>
               <p className="text-sm text-[#6B7280] mb-8 leading-relaxed">
-                Redirecting you to Google automatically to paste your review.
+                {googleTabOpened
+                  ? "Your review has been copied and Google Reviews is open in a new tab. Paste your review there and submit it."
+                  : "Your review has been copied. If Google Reviews did not open automatically, use the button below and paste your review."}
               </p>
               
               <div className="flex flex-col gap-3">
@@ -651,7 +663,7 @@ const handleCopy = async (index: number) => {
                   onClick={() => setShowPostPopup(false)}
                   className="bg-[#1A1A1A] text-white py-3.5 rounded-full text-[14px] font-medium hover:bg-[#2C2C2C] transition-colors shadow-lg shadow-black/10"
                 >
-                  Post Manually
+                  Open Google Reviews
                 </a>
                 <button
                   onClick={() => setShowPostPopup(false)}
